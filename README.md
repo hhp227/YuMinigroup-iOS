@@ -1,2 +1,2 @@
-# OurStory-iOS
-application
+# YuMinigroup-iOS
+YuMinigroup
