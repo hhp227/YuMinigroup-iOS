@@ -2,106 +2,33 @@
 //  ReplyRepository.swift
 //  YuMinigroup
 //
-//  Created by 홍희표 on 2021/09/15.
-//  Copyright © 2021 홍희표. All rights reserved.
+//  ReplyRemoteDataSource를 그대로 위임하는 순수 패스스루 — ArticleRepository.swift/GroupRepository.swift/
+//  UserRepository.swift와 동일한 경계 계층. ArticleViewModel은 이 Repository만 참조하고
+//  ReplyRemoteDataSource를 직접 참조하지 않는다.
 //
 
 import Foundation
-import Combine
 
-class ReplyRepository {
-    private let replyService: ReplyService
-    
-    func getReplys(_ apiKey: String, _ postId: Int) -> Publishers.Catch<AnyPublisher<Resource<[ReplyItem]>, Error>, Just<Resource<[ReplyItem]>>> {
-        return Future { promise in
-            Task {
-                do {
-                    let response = try await self.replyService.getReplys(apiKey, postId)
-                    
-                    if !response.error {
-                        promise(.success(.success(response.data)))
-                    } else {
-                        promise(.success(.error(response.message!, nil)))
-                    }
-                } catch {
-                    promise(.failure(error))
-                }
-            }
-        }
-        .prepend(Resource.loading(nil))
-        .eraseToAnyPublisher()
-        .catch { error in
-            Just(.error(error.localizedDescription, nil))
-        }
+final class ReplyRepository {
+    private let remote: ReplyRemoteDataSource
+
+    init(groupId: String, articleId: String, articleKey: String?) {
+        remote = ReplyRemoteDataSource(groupId: groupId, articleId: articleId, articleKey: articleKey)
     }
-    
-    func getReply(_ apiKey: String, _ replyId: Int) {
-        // TODO
+
+    func fetchReplys(completion: @escaping (Resource<[ReplyItem]>) -> Void) {
+        remote.fetchReplys(completion: completion)
     }
-    
-    func addReply(_ apiKey: String, _ postId: Int, _ text: String) -> Publishers.Catch<AnyPublisher<Resource<ReplyItem>, Error>, Just<Resource<ReplyItem>>> {
-        return Future { promise in
-            Task {
-                do {
-                    let response = try await self.replyService.addReply(apiKey, postId, text)
-                    
-                    if !response.error {
-                        promise(.success(.success(response.data)))
-                    } else {
-                        promise(.success(.error(response.message!, nil)))
-                    }
-                } catch {
-                    promise(.failure(error))
-                }
-            }
-        }
-        .prepend(Resource.loading(nil))
-        .eraseToAnyPublisher()
-        .catch { error in
-            Just(Resource.error(error.localizedDescription, nil))
-        }
+
+    func addReply(text: String, completion: @escaping (Resource<[ReplyItem]>) -> Void) {
+        remote.addReply(text: text, completion: completion)
     }
-    
-    func setReply(_ apiKey: String, _ replyId: Int, _ text: String) -> Publishers.Catch<AnyPublisher<Resource<Bool>, Error>, Just<Resource<Bool>>> {
-        return Future { promise in
-            Task {
-                do {
-                    let response = try await self.replyService.setReply(apiKey, replyId, text, "0")
-                    
-                    if !response.error {
-                        promise(.success(.success(true)))
-                    } else {
-                        promise(.success(.error(response.message ?? "Reply failed to update. Please try again!", false)))
-                    }
-                } catch {
-                    promise(.failure(error))
-                }
-            }
-        }
-        .prepend(Resource.loading(nil))
-        .eraseToAnyPublisher()
-        .catch { error in
-            Just(Resource.error(error.localizedDescription, nil))
-        }
+
+    func setReply(replyId: String, text: String, completion: @escaping (Resource<Bool>) -> Void) {
+        remote.setReply(replyId: replyId, text: text, completion: completion)
     }
-    
-    func removeReply(_ apiKey: String, _ replyId: Int) {
-        // TODO
-    }
-    
-    init(_ replyService: ReplyService) {
-        self.replyService = replyService
-    }
-    
-    private static var instance: ReplyRepository? = nil
-    
-    static func getInstance(replyService: ReplyService) -> ReplyRepository {
-        if let instance = self.instance {
-            return instance
-        } else {
-            let replyRepository = ReplyRepository(replyService)
-            self.instance = replyRepository
-            return replyRepository
-        }
+
+    func removeReply(replyId: String, replyKey: String?, completion: @escaping (Resource<[ReplyItem]>) -> Void) {
+        remote.removeReply(replyId: replyId, replyKey: replyKey, completion: completion)
     }
 }

@@ -2,107 +2,63 @@
 //  LoginViewModel.swift
 //  YuMinigroup
 //
-//  Created by 홍희표 on 2021/08/07.
-//  Copyright © 2021 홍희표. All rights reserved.
+//  Android viewmodel.LoginViewModel 대응 — 아이디/비밀번호 유효성 검사(둘 다 비어있지 않을 것) 후
+//  UserRepository.login을 호출한다. Android는 EditText 두 개에 각각 에러를 붙이지만(mEmailError/
+//  mPasswordError), 이쪽 State는 토스트용 message 하나뿐이라 아이디 → 비밀번호 순으로 검사해 먼저
+//  걸리는 쪽 문구만 노출한다(문구 자체는 Android 원문 그대로). 성공 시 PreferenceManager.storeUser로
+//  세션을 저장하는 것은 VM 책임이다(UserRepository.login은 저장하지 않는다 — Task 7 계약).
 //
 
 import Foundation
 import Combine
 
-class LoginViewModel: ObservableObject {
-    private let repository: UserRepository
-    
-    private let userDefaultsManager: UserDefaultsManager
-    
-    @Published
-    var state: State = State()
-    
-    private func isEmailValid(_ email: String) -> Bool {
-        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-        return email.contains("@") ? NSPredicate(format: "SELF MATCHES %@", emailRegEx).evaluate(with: email) : !email.isEmpty
-    }
-    
-    private func isPasswordValid(_ password: String) -> Bool {
-        return password.count > 5
-    }
-    
-    func storeUser(_ user: User) {
-        userDefaultsManager.storeUser(user)
-    }
-    
-    func login() {
-        if isEmailValid(state.email) && isPasswordValid(state.password) {
-            repository.login(state.email, state.password)
-                .receive(on: RunLoop.main)
-                .sink { result in
-                    switch result.status {
-                    case .SUCCESS:
-                        self.state = self.state.copy(
-                            isLoading: false,
-                            user: result.data
-                        )
-                    case .ERROR:
-                        self.state = self.state.copy(
-                            isLoading: false,
-                            message: result.message ?? "An unexpected error occured"
-                        )
-                    case .LOADING:
-                        self.state = self.state.copy(
-                            isLoading: true,
-                            message: ""
-                        )
-                    }
-                }
-                .store(in: &state.subscriptions)
-        } else {
-            print("email 또는 password가 잘못되었습니다.")
-        }
-    }
-    
-    func showSnackBar() {
-        print("error: \(state.message)")
-    }
-    
-    init(_ repository: UserRepository, _ userDefaultsManager: UserDefaultsManager) {
-        self.repository = repository
-        self.userDefaultsManager = userDefaultsManager
-    }
-    
-    deinit {
-        state.subscriptions.removeAll()
-    }
-    
+final class LoginViewModel: ObservableObject {
     struct State {
-        var email: String = ""
-        
-        var password: String = ""
-        
-        var isLoading: Bool = false
-        
-        var user: User? = nil
-        
-        var message: String = ""
-        
-        var subscriptions: Set<AnyCancellable> = []
+        var id = ""
+        var password = ""
+        var isLoading = false
+        var message: String?
+        var loggedInUser: User?
     }
-}
 
-extension LoginViewModel.State {
-    func copy(
-        email: String? = nil,
-        password: String? = nil,
-        isLoading: Bool? = nil,
-        user: User? = nil,
-        message: String? = nil,
-        subscriptions: Set<AnyCancellable>? = nil
-    ) -> LoginViewModel.State {
-        return .init(
-            email: email ?? self.email,
-            password: password ?? self.password,
-            isLoading: isLoading ?? self.isLoading,
-            user: user ?? self.user,
-            message: message ?? self.message,
-            subscriptions: subscriptions ?? self.subscriptions
-        )
+    @Published var state = State()
+
+    private let userRepository: UserRepository
+
+    init(userRepository: UserRepository = UserRepository()) {
+        self.userRepository = userRepository
+    }
+
+    // Android LoginViewModel.login(id, password) 대응.
+    func login() {
+        guard !state.isLoading else {
+            return
+        }
+        guard !state.id.isEmpty else {
+            state.message = "아이디 또는 학번을 입력하세요."
+            return
+        }
+        guard !state.password.isEmpty else {
+            state.message = "패스워드를 입력하세요."
+            return
+        }
+        state.message = nil
+        state.isLoading = true
+        userRepository.login(id: state.id, password: state.password) { [weak self] resource in
+            guard let self = self else {
+                return
+            }
+            switch resource {
+            case .loading:
+                self.state.isLoading = true
+            case .success(let user):
+                self.state.isLoading = false
+                PreferenceManager.shared.storeUser(user)
+                self.state.loggedInUser = user
+            case .error(let message, _):
+                self.state.isLoading = false
+                self.state.message = message
+            }
+        }
     }
 }

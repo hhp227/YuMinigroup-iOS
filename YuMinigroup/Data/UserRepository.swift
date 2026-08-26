@@ -2,71 +2,30 @@
 //  UserRepository.swift
 //  YuMinigroup
 //
-//  Created by 홍희표 on 2021/08/08.
-//  Copyright © 2021 홍희표. All rights reserved.
+//  UserRemoteDataSource를 그대로 위임하는 순수 패스스루 — ViewModel이 DataSource를 직접 들지 않도록
+//  경계만 제공한다. Android 쪽엔 로그인 전용 Repository가 따로 없이 LoginViewModel이 Volley 요청을
+//  직접 들고 있지만, 이 마이그레이션은 Repository+DataSource 경계를 전 기능에 일관 적용한다
+//  (다른 태스크가 만드는 GroupRepository/ArticleRepository 등과 동일한 얇은 위임 계층).
 //
 
 import Foundation
-import Combine
 
-class UserRepository {
-    private let authService: AuthService
-    
-    func login(_ email: String, _ password: String) -> Publishers.Catch<AnyPublisher<Resource<User>, Error>, Just<Resource<User>>> {
-        return Future { promise in
-            Task {
-                do {
-                    let response = try await self.authService.login(email, password)
-                    
-                    promise(.success(Resource.success(response.data)))
-                } catch {
-                    promise(.failure(error))
-                }
-            }
-        }
-        .prepend(Resource.loading(nil))
-        .eraseToAnyPublisher()
-        .catch { error in
-            Just(Resource.error(error.localizedDescription, nil))
-        }
+final class UserRepository {
+    private let remote = UserRemoteDataSource()
+
+    func login(id: String, password: String, completion: @escaping (Resource<User>) -> Void) {
+        remote.login(id: id, password: password, completion: completion)
     }
-    
-    func register(_ name: String, _ email: String, _ password: String) -> Publishers.Catch<AnyPublisher<Resource<Bool>, Error>, Just<Resource<Bool>>> {
-        return Future { promise in
-            Task {
-                do {
-                    let response = try await self.authService.register(name, email, password)
-                        
-                    if !response.error {
-                        promise(.success(Resource.success(true)))
-                    } else {
-                        promise(.success(.error("", response.error)))
-                    }
-                } catch {
-                    promise(.failure(error))
-                }
-            }
-        }
-        .prepend(Resource.loading(nil))
-        .eraseToAnyPublisher()
-        .catch { error in
-            Just(Resource.error(error.localizedDescription, nil))
-        }
+
+    func fetchMyInfo(completion: @escaping (Resource<User>) -> Void) {
+        remote.fetchMyInfo(completion: completion)
     }
-    
-    init(_ authService: AuthService) {
-        self.authService = authService
+
+    func syncProfile(completion: @escaping (Resource<String>) -> Void) {
+        remote.syncProfile(completion: completion)
     }
-    
-    private static var instance: UserRepository? = nil
-    
-    static func getInstance(authService: AuthService) -> UserRepository {
-        if let instance = self.instance {
-            return instance
-        } else {
-            let userRepository = UserRepository(authService)
-            self.instance = userRepository
-            return userRepository
-        }
+
+    func updateProfileImage(imageData: Data, completion: @escaping (Resource<String>) -> Void) {
+        remote.updateProfileImage(imageData: imageData, completion: completion)
     }
 }

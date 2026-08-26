@@ -2,50 +2,27 @@
 //  GroupRepository.swift
 //  YuMinigroup
 //
-//  Created by 홍희표 on 2021/09/24.
-//  Copyright © 2021 홍희표. All rights reserved.
+//  GroupRemoteDataSource를 그대로 위임하는 순수 패스스루 — UserRepository.swift와 동일한 경계 계층.
 //
 
 import Foundation
 
-class GroupRepository {
-    private let groupService: GroupService
-    
-    func getGroups() {
-        // TODO
+final class GroupRepository {
+    private let remote = GroupRemoteDataSource()
+
+    func fetchJoinedGroups(offset: Int, completion: @escaping (Resource<[GroupItem]>) -> Void) {
+        remote.fetchJoinedGroups(offset: offset, completion: completion)
     }
-    
-    func requestToJoinOrCancel() {
-        // TODO
+
+    func fetchMembers(groupId: String, offset: Int, completion: @escaping (Resource<[MemberItem]>) -> Void) {
+        remote.fetchMembers(groupId: groupId, offset: offset, completion: completion)
     }
-    
-    func addGroupImage() {
-        // TODO
+
+    func leaveGroup(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
+        remote.leaveGroup(groupId: groupId, key: key, completion: completion)
     }
-    
-    func addGroup() {
-        // TODO
-    }
-    
-    func removeGroup() {
-        // TODO
-    }
-    
-    // TODO clearCache
-    
-    init(_ groupService: GroupService) {
-        self.groupService = groupService
-    }
-    
-    private static var instance: GroupRepository? = nil
-    
-    static func getInstance(groupService: GroupService) -> GroupRepository {
-        if let instance = self.instance {
-            return instance
-        } else {
-            let groupRepository = GroupRepository(groupService)
-            self.instance = groupRepository
-            return groupRepository
-        }
+
+    func deleteGroup(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
+        remote.deleteGroup(groupId: groupId, key: key, completion: completion)
     }
 }

@@ -2,73 +2,79 @@
 //  LoginView.swift
 //  YuMinigroup
 //
-//  Created by 홍희표 on 2021/08/28.
-//  Copyright © 2021 홍희표. All rights reserved.
+//  Android activity_login.xml + LoginViewModel 대응 — 로고, 아이디(학번)/비밀번호 입력, 로그인 버튼,
+//  로딩 오버레이, 토스트로 구성한다. 아이디 필드는 Android의 inputType="number"를 그대로
+//  .keyboardType(.numberPad)로 미러한다(형식 검증이 아니라 키보드 종류일 뿐 — task-8-report.md 참고).
 //
 
 import SwiftUI
 
 struct LoginView: View {
-    @State
-    private var isShowRegister = false
-    
-    @StateObject
-    var viewModel: LoginViewModel = InjectorUtils.instance.provideLoginViewModel()
-    
+    @StateObject private var viewModel = LoginViewModel()
+
+    let onLoginSuccess: () -> Void
+
     var body: some View {
         ZStack {
-            VStack {
-                VStack {
-                    Text("Welcome!").font(.title)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Email").padding(.bottom, 10)
-                        TextField("Email", text: $viewModel.state.email)
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)
-                            .disableAutocorrection(true)
-                            .padding(15)
-                            .background(RoundedRectangle(cornerRadius: 4).stroke(Color.accentColor, lineWidth: 2))
-                        Text("Password").padding(.vertical, 10)
-                        SecureField("Password", text: $viewModel.state.password)
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 4).stroke(Color.accentColor, lineWidth: 2))
-                    }
-                    .padding(10)
+            VStack(spacing: 16) {
+                Spacer(minLength: 24)
+
+                Image(systemName: "graduationcap.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 96, height: 60)
+
+                Text("영남대 LMS소셜네트워크")
+                    .italic()
+                    .font(.system(size: 15))
+
+                Spacer(minLength: 24)
+
+                Text("ID와 Password는 포털시스템과 동일합니다.")
+                    .font(.system(size: 14))
+                    .multilineTextAlignment(.center)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("아이디 또는 학번")
+
+                    TextField("ID", text: $viewModel.state.id)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    Text("패스워드")
+                        .padding(.top, 4)
+
+                    SecureField("Password", text: $viewModel.state.password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
+
                 Button(action: viewModel.login) {
-                    Text("LOGIN")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(10)
+                    Text("로그인")
+                        .frame(width: 200)
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(10)
-                Button(action: { isShowRegister.toggle() }) {
-                    Text("Register")
-                        .font(.system(size: 13))
-                        .padding(5)
-                }
-                .sheet(isPresented: $isShowRegister) {
-                    RegisterView()
-                }
+                .padding(.top, 8)
+
+                Text("영남대학교 포털시스템으로 \n로그인 가능합니다.")
+                    .font(.system(size: 13))
+                    .multilineTextAlignment(.center)
+                    .padding(5)
+
+                Spacer()
             }
             .padding(16)
-            .onReceive(viewModel.$state) { state in
-                if let user = state.user {
-                    viewModel.storeUser(user)
-                } else if !state.message.isEmpty {
-                    viewModel.showSnackBar()
-                }
-            }
+
             if viewModel.state.isLoading {
-                ProgressView().progressViewStyle(.circular)
+                Color.black.opacity(0.2)
+                    .ignoresSafeArea()
+                ProgressView()
             }
         }
-    }
-}
-
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
+        .toast(message: $viewModel.state.message)
+        .onChange(of: viewModel.state.loggedInUser) { loggedInUser in
+            if loggedInUser != nil {
+                onLoginSuccess()
+            }
+        }
     }
 }

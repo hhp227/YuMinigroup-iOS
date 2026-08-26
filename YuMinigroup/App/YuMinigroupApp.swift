@@ -1,15 +1,14 @@
-//
-//  YuMinigroupApp.swift
-//  YuMinigroup
-//
-//  Created by 홍희표 on 2020/05/17.
-//  Copyright © 2020 홍희표. All rights reserved.
-//
-
 import SwiftUI
+import FirebaseCore
 
 @main
 struct YuMinigroupApp: App {
+    init() {
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            FirebaseApp.configure()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
