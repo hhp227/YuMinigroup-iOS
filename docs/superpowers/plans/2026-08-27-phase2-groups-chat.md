@@ -63,7 +63,7 @@ static let noPhotoImage     = baseURL + "/ilos/images/community/share_nophoto.gi
   - `class="info"` 요소 내부 텍스트들을 순서대로 수집: [0]→`description_`, [1] trim→joinType 판정(`"가입방식: 자동 승인"` 정확 일치 → `"0"`, 아니면 `"1"`). `info` 필드: 각 텍스트가 `"회원수"` 포함 시 `"생성일"` 마지막 등장 위치 앞까지 trim+"\n", 아니면 그대로+"\n" 누적(스펙 §3.2).
   - GroupItem 생성: `isAdmin: false, memberCount: 0, key: nil`, 나머지 파싱값.
 - [ ] **Step 4: minId 휴리스틱** — 인스턴스 필드 `private var minId = 0`, `private var stopRequestMore = false`. 파싱 루프에서 `minId = (minId == 0) ? id : min(minId, id)`, `id > minId`면 `stopRequestMore = true` 후 루프 중단. `resetGroupPaging()`은 둘 다 리셋. find/request가 같은 필드를 공유해도 무방(화면당 VM이 각자 `GroupRepository()`→각자 데이터소스 인스턴스를 갖는 1차 구조).
-- [ ] **Step 5: Firebase 병합(find)** — LMS 성공 후 `Groups`를 `queryOrderedByKey` 1회 스캔, 각 child의 `childSnapshot(forPath: "id")`가 일치하는 item의 `key`를 child.key로 교체(1차 `resolveKeys` 관례). `FirebaseRef.database()` nil 또는 조회 실패(withCancel) → LMS 결과 그대로 `.success`.
+- [ ] **Step 5: Firebase 병합(find)** — LMS 성공 후 `Groups`를 `queryOrderedByKey` 1회 스캔, 각 child의 `childSnapshot(forPath: "id")`가 일치하는 item의 `key`를 child.key로 교체(1차 `resolveKeys` 관례). `FirebaseRef.database()` nil 또는 조회 실패(withCancel) → LMS 결과 그대로 `.success`. (교정 2026-08-27 최종 리뷰: 미매칭 항목은 key = LMS ID 폴백 — 스펙 §3.2 "없으면 LMS ID 유지"가 본 계획에서 누락됐었음)
 - [ ] **Step 6: Firebase 교차 필터(request, 결함 1 수정)** — `FirebaseRef.database()` nil 또는 uid 없음 → `.success([])`. 아니면:
 
 ```swift
@@ -154,7 +154,7 @@ private func runMembershipTransaction(key: String, fallback: GroupItem?, joinTyp
 - [ ] **Step 4: register/cancel 조립** — LMS 성공(onSuccess 클로저)에서, `key`와 `uid`가 있을 때만:
   - register: `runMembershipTransaction(key:fallback:joinType:) { $0[uid] = (joinType == "0") }` + `root.child("UserGroupList").child(uid).child(key).setValue(joinType == "0")` — **true=정식가입/false=승인대기**(스펙 §3.3).
   - cancel: `runMembershipTransaction(key:fallback: nil, joinType: nil) { $0.removeValue(forKey: uid) }` + `UserGroupList/{uid}/{key}` `removeValue()`.
-  - `key == nil`(Firebase 미등록/미구성)이면 Firebase 갱신 전체 생략(LMS만 성공 처리).
+  - `key == nil`(Firebase 미등록/미구성)이면 Firebase 갱신 전체 생략(LMS만 성공 처리). (교정: Task 1 폴백 적용 후 key nil은 사실상 Firebase 미구성 경우만 남는다)
 - [ ] **Step 5: 검증** — grep으로 `runTransactionBlock` 존재, `setValue(joinType == "0")`의 boolean 의미가 스펙 §3.3 표와 일치하는지 대조, Repository 패스스루 2건 확인.
 - [ ] **Step 6: 커밋** — `feat: add group join request/cancel data layer with firebase transaction`
 

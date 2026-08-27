@@ -544,7 +544,10 @@ final class GroupRemoteDataSource {
     // 그룹찾기(find) 전용 — Android initFirebaseData(List) + fetchGroupListFromFireBase 대응.
     // 가입한 그룹처럼 "내가 속한 키 목록"이 없으므로, Groups 전체를 한 번에 orderByKey로 조회해
     // (resolveKeys처럼 key마다 개별 조회하지 않는다 — 대상 후보가 모든 그룹이라 스캔이 더 싸다)
-    // LMS grp_id와 일치하는 항목만 key를 채운다. Firebase 미구성/조회 실패 시 LMS 결과 그대로 성공 처리.
+    // LMS grp_id와 일치하는 항목은 Firebase push key로, 매칭되지 않은 항목은 LMS ID를 그대로 key에
+    // 채운다(스펙 §3.2 "없으면 LMS ID 유지" — 최종 리뷰 Finding 1 수정, 아래 완료 클로저 참고).
+    // Firebase 미구성/조회 실패 시 LMS 결과 그대로 성공 처리(이 경우엔 폴백을 적용하지 않는다 —
+    // 병합 자체를 시도하지 못했으므로 registerGroup에서 "Firebase 미구성"과 동일하게 처리된다).
     private func mergeFirebaseGroupKeys(into items: [GroupItem], completion: @escaping (Resource<[GroupItem]>) -> Void) {
         guard let root = FirebaseRef.database() else {
             completion(.success(items))
@@ -559,8 +562,24 @@ final class GroupRemoteDataSource {
                     result[index].key = child.key
                 }
             }
+            // 최종 리뷰 수정(Finding 1) — 스펙 §3.2 "LMS ID → Firebase push key로 교체(없으면
+            // LMS ID 유지)": 위 스캔에서 매칭되지 않은 항목(Firebase 미등록 비앱 그룹)은 key를
+            // nil로 남기지 않고 LMS ID 그대로 채운다. Android entry key 의미론도 이와 동일하다 —
+            // 병합 대상 목록의 key는 항상 존재하고, 매칭될 때만 Firebase push key로 교체될 뿐이다.
+            // 이 폴백이 없으면 registerGroup의 `key == nil` 가드가 Firebase 갱신 전체를 생략해
+            // 비앱 그룹 가입신청이 UserGroupList/Groups에 전혀 기록되지 않는다(승인제 신청이
+            // 가입신청중 화면에 뜨지 않고 취소도 불가, 자동승인 가입은 채팅 목록에 누락) —
+            // runMembershipTransaction의 fallback 분기(결함 6 수정, Groups/{lmsId} 최소 노드
+            // 생성)도 key가 nil이 아니어야 도달한다.
+            for index in result.indices where result[index].key == nil {
+                result[index].key = result[index].id
+            }
             completion(.success(result))
         }, withCancel: { _ in
+            // 조회 실패는 부가 매핑 실패일 뿐이므로(관례) LMS 파싱 결과 그대로 성공 처리한다 —
+            // 이 경로는 병합을 "시도"하지 못한 것이므로 위 폴백을 적용하지 않는다(items의 key는
+            // 애초에 전부 nil이라 registerGroup 쪽에서 봤을 때 "Firebase 미구성"과 동일하게
+            // 안전하게 갱신 생략으로 강등된다).
             completion(.success(items))
         })
     }

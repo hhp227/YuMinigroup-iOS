@@ -65,7 +65,7 @@
 
 ### 5.2 런타임 인수 체크리스트 (실기기 권장)
 
-- [ ] **⑨ 그룹찾기 목록**: 그룹찾기 탭 진입 → 목록 노출 확인(실마크업 1순위 검증 — accordion 셀렉터) → 하단 스크롤 시 다음 페이지 로드(페이징) → 가입신청을 자동승인 그룹 1회, 운영자승인 그룹 1회 각각 실행한 뒤 Firebase 콘솔에서 `UserGroupList/{내uid}/{key}` 값이 각각 true/false로 기록되는지 확인.
+- [ ] **⑨ 그룹찾기 목록**: 그룹찾기 탭 진입 → 목록 노출 확인(실마크업 1순위 검증 — accordion 셀렉터) → 하단 스크롤 시 다음 페이지 로드(페이징) → 가입신청을 자동승인 그룹 1회, 운영자승인 그룹 1회 각각 실행한 뒤 Firebase 콘솔에서 `UserGroupList/{내uid}/{key}` 값이 각각 true/false로 기록되는지 확인. **Firebase에 미등록된 그룹(비앱 그룹)으로도 1회 수행** — LMS ID 폴백 경로 검증.
 - [ ] **⑩ 가입신청중 목록**: 승인 대기 중인 그룹만 노출되는지(정식 가입 그룹은 미노출) → 신청취소 실행 → 목록에서 즉시 제거되는지(갱신) 확인.
 - [ ] **⑪ 그룹 만들기**: 이미지 없이 1회 + 이미지 첨부 1회(302 응답 경로) 각각 생성 → 생성 직후 새 그룹 화면으로 바로 진입하는지 → LMS(학교 커뮤니티에 신규 그룹 노출)와 Firebase(`Groups/{key}`, `UserGroupList/{내uid}/{key}=true`) 양쪽에 등록되는지 확인.
 - [ ] **⑫ 채팅 송수신**: 그룹채팅 1회 + 1:1 채팅 1회 송수신 → 두 기기(또는 기기+시뮬레이터)로 실시간 수신 확인 → 위로 스크롤 시 이전 메시지 페이징 로드 → 화면 재진입 시 중복 메시지가 없는지 확인.
@@ -81,5 +81,6 @@
 - [ ] **가입신청 성공 토스트 지연**: 신청 성공 토스트를 보여준 뒤 1.2초 지연 후 화면을 pop합니다(`FindGroupView.swift`). 실기기에서 토스트가 충분히 읽히는 시간인지 체감 확인 후 필요하면 지연값을 튜닝하세요(Task 3 이연).
 - [ ] **채팅 실시간 재진입 시 중복 수신 확인**: `afterKey`로 필터 쿼리(`queryStarting(atValue:)`)를 등록해 관찰을 시작한 뒤 화면을 이탈(무필터 `ref`로 `removeObserver` 호출)했다가 재진입할 때, 기존에 이미 수신한 메시지가 `childAdded`로 다시 중복 발생하지 않는지 확인하세요(필터 쿼리로 등록·무필터 ref로 해제하는 교차 패턴이라 이론상 위험 지점, Task 7 이연).
 - [ ] **Firebase 쿼리·트랜잭션 시그니처 실기기 컴파일 확인**: `queryStarting(atValue:)` / `queryEnding(atValue:)` / `queryEqual(toValue:)` / `runTransactionBlock` / `updateChildValues`가 실제 Firebase iOS SDK 버전과 시그니처가 일치해 정상 컴파일되는지 확인하세요(5.1-1과 동일 지점, 컴파일 성공 후에도 별도로 체크).
+- [ ] **가입 그룹 목록(1차)은 LMS ID 폴백 미적용**: 1차 `mergeFirebaseKeys`/`resolveKeys`(가입한 그룹, GroupMainView)는 최종 리뷰(2026-08-27)에서 2차 `mergeFirebaseGroupKeys`(그룹찾기)에 적용한 "매칭 실패 시 key = LMS ID" 폴백을 받지 않았습니다 — 비앱 그룹(Firebase 미등록 LMS 그룹)의 그룹채팅 진입이 key==nil 가드에 막혀 "채팅을 사용할 수 없습니다"로 표시되는 Android 패리티 갭입니다. 3차에서 1차 병합 경로에도 동일 폴백 적용을 검토하세요(적용 시 게시글 Firebase 이중기록도 `Articles/{lmsId}`로 활성화됨에 유의).
 
 이 목록에 없는 세부 사항은 `.superpowers/sdd/2026-08-27-phase2-groups-chat/progress.md`의 각 태스크 항목에 전부 기록되어 있습니다.

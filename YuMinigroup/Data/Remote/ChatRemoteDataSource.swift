@@ -116,6 +116,12 @@ final class ChatRemoteDataSource {
             return MessageItem(key: key, from: uid, name: user.name ?? "", message: text,
                                type: "text", seen: false, timestamp: timestamp)
         }
+        // 최종 리뷰 수정(Finding 2) — receiver == uid(자기 자신에게 1:1 전송)면 아래
+        // updateChildValues 딕셔너리 리터럴의 두 키("\(receiver)/\(uid)/\(pushId)"와
+        // "\(uid)/\(receiver)/\(pushId)")가 같은 문자열이 되어 런타임 트랩이 난다. 평소엔 UI가
+        // isSelf로 이 진입 자체를 막지만, 레거시 Messages/{uid}/{uid} 스레드가 채팅 목록에 노출되면
+        // 이 경로에 도달할 수 있어 방어적으로 조용히 실패 처리한다.
+        guard receiver != uid else { return nil }
         guard let pushId = messagesRef.child(uid).child(receiver).childByAutoId().key else { return nil }
         messagesRef.updateChildValues(["\(receiver)/\(uid)/\(pushId)": map,   // 상대 쪽
                                         "\(uid)/\(receiver)/\(pushId)": map])  // 내 쪽 — 동일 pushId 원자 미러
