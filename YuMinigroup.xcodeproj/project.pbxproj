@@ -88,6 +88,8 @@
 		YU0000000000000000000161 /* FindGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000160 /* FindGroupView.swift */; };
 		YU0000000000000000000163 /* RequestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000162 /* RequestViewModel.swift */; };
 		YU0000000000000000000165 /* RequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000164 /* RequestView.swift */; };
+		YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000166 /* CreateGroupViewModel.swift */; };
+		YU0000000000000000000169 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000168 /* CreateGroupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -171,6 +173,8 @@
 		YU0000000000000000000160 /* FindGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindGroupView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000162 /* RequestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000164 /* RequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000166 /* CreateGroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000168 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -284,6 +288,7 @@
 				YU0000000000000000000158 /* GroupInfoDialogView.swift */,
 				YU0000000000000000000160 /* FindGroupView.swift */,
 				YU0000000000000000000164 /* RequestView.swift */,
+				YU0000000000000000000168 /* CreateGroupView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -318,6 +323,7 @@
 				YU0000000000000000000152 /* FindGroupViewModel.swift */,
 				YU0000000000000000000154 /* GroupInfoViewModel.swift */,
 				YU0000000000000000000162 /* RequestViewModel.swift */,
+				YU0000000000000000000166 /* CreateGroupViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -522,6 +528,8 @@
 				YU0000000000000000000161 /* FindGroupView.swift in Sources */,
 				YU0000000000000000000163 /* RequestViewModel.swift in Sources */,
 				YU0000000000000000000165 /* RequestView.swift in Sources */,
+				YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */,
+				YU0000000000000000000169 /* CreateGroupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
