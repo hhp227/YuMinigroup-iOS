@@ -109,6 +109,10 @@
 		YU0000000000000000000203 /* SeatRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000202 /* SeatRepository.swift */; };
 		YU0000000000000000000205 /* SeatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000204 /* SeatViewModel.swift */; };
 		YU0000000000000000000207 /* SeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000206 /* SeatView.swift */; };
+		YU0000000000000000000209 /* TimetableRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000208 /* TimetableRemoteDataSource.swift */; };
+		YU0000000000000000000211 /* TimetableRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000210 /* TimetableRepository.swift */; };
+		YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000212 /* SemesterTimetableViewModel.swift */; };
+		YU0000000000000000000215 /* TimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000214 /* TimetableView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -213,6 +217,10 @@
 		YU0000000000000000000202 /* SeatRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000204 /* SeatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000206 /* SeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000208 /* TimetableRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000210 /* TimetableRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000212 /* SemesterTimetableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SemesterTimetableViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000214 /* TimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -279,6 +287,7 @@
 				YU0000000000000000000172 /* ChatRemoteDataSource.swift */,
 				YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */,
 				YU0000000000000000000200 /* SeatRemoteDataSource.swift */,
+				YU0000000000000000000208 /* TimetableRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -294,6 +303,7 @@
 				YU0000000000000000000174 /* ChatRepository.swift */,
 				YU0000000000000000000192 /* UnivNoticeRepository.swift */,
 				YU0000000000000000000202 /* SeatRepository.swift */,
+				YU0000000000000000000210 /* TimetableRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -338,6 +348,7 @@
 				YU0000000000000000000186 /* WebViewScreen.swift */,
 				YU0000000000000000000196 /* UnivNoticeView.swift */,
 				YU0000000000000000000206 /* SeatView.swift */,
+				YU0000000000000000000214 /* TimetableView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -378,6 +389,7 @@
 				YU0000000000000000000182 /* ChatListViewModel.swift */,
 				YU0000000000000000000194 /* UnivNoticeViewModel.swift */,
 				YU0000000000000000000204 /* SeatViewModel.swift */,
+				YU0000000000000000000212 /* SemesterTimetableViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -606,6 +618,10 @@
 				YU0000000000000000000203 /* SeatRepository.swift in Sources */,
 				YU0000000000000000000205 /* SeatViewModel.swift in Sources */,
 				YU0000000000000000000207 /* SeatView.swift in Sources */,
+				YU0000000000000000000209 /* TimetableRemoteDataSource.swift in Sources */,
+				YU0000000000000000000211 /* TimetableRepository.swift in Sources */,
+				YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */,
+				YU0000000000000000000215 /* TimetableView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

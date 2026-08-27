@@ -13,6 +13,8 @@
 //  GROUP_MEMBER_LIST/SEND_MESSAGE/TIMETABLE/도서관/유튜브)은 여전히 YAGNI로 제외.
 //  3차 Task 3(도서관 좌석)에서 Android URL_YU_LIBRARY_SEAT_ROOMS/URL_YU_LIBRARY_SEAT_DETAIL({ID}
 //  치환형)을 librarySeatRooms(목록) + librarySeatDetail(id:)(상세, 헬퍼 함수 관례) 두 개로 추가한다.
+//  3차 Task 4(시간표)에서 Android URL_YU_TIMETABLE(치환 없는 고정 상수)을 timetable로 추가한다 —
+//  나머지 이연 URL(도서관 상세 외 유튜브 등)은 여전히 다른 태스크 몫.
 //
 
 enum EndPoint {
@@ -44,6 +46,7 @@ enum EndPoint {
     static let shuttleBus = "https://hcms.yu.ac.kr/main/life/information-on-the-school-bus.do"
     static let yuNoticeList = "https://www.yu.ac.kr/main/intro/yu-news.do?mode=list"
     static let librarySeatRooms = "https://slib.yu.ac.kr/Clicker/GetClickerReadingRooms"
+    static let timetable = baseURL + "/ilos/st/main/pop_academic_timetable_form.acl"
 
     static func userImage(uid: String) -> String {
         baseURL + "/ilos/mp/user_image_view.acl?id=\(uid)&ext=.jpg"

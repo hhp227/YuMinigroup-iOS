@@ -29,6 +29,9 @@
 //  Task 3(3차): librarySeat 라우트를 SeatView로 교체한다(스펙 §4.3). 나머지(시간표)는 3차 후속 태스크가
 //  교체하기 전까지 여전히 PlaceholderView다.
 //
+//  Task 4(3차): timetable 라우트를 TimetableView로 교체한다(스펙 §4.2). 이걸로 3차 대학유틸 4종 드로어
+//  스텁이 모두 해소된다.
+//
 
 import SwiftUI
 
@@ -109,8 +112,9 @@ struct MainView: View {
 
 // groupMain은 GroupMainView(Task 10)로, chatList는 ChatListView(2차 Task 10)로, shuttleBus는
 // WebViewScreen(3차 Task 1)로, univNotice는 UnivNoticeView(3차 Task 2)로, librarySeat는
-// SeatView(3차 Task 3)로 라우팅한다. 나머지(시간표)는 아직 PlaceholderView로 라우팅한다(3차 후속
-// 태스크가 교체 예정).
+// SeatView(3차 Task 3)로, timetable은 TimetableView(3차 Task 4)로 라우팅한다 — 이걸로 3차 대학유틸
+// 드로어 스텁(옛 default 분기의 PlaceholderView)이 전부 해소돼 MainRoute 전 케이스가 명시적으로
+// 갈린다(default 분기 제거 — PlaceholderView는 여전히 Tab4View "공지사항" 스텁이 쓴다).
 private struct MainContentRouter: View {
     let route: MainRoute
     let onMenuClick: () -> Void
@@ -123,12 +127,12 @@ private struct MainContentRouter: View {
             ChatListView(onMenuClick: onMenuClick)
         case .univNotice:
             UnivNoticeView(onMenuClick: onMenuClick)
+        case .timetable:
+            TimetableView(onMenuClick: onMenuClick)
         case .librarySeat:
             SeatView(onMenuClick: onMenuClick)
         case .shuttleBus:
             WebViewScreen(urlString: EndPoint.shuttleBus, title: "순환버스 시간표", onMenuClick: onMenuClick)
-        default:
-            PlaceholderView(title: MainView.title(for: route), onMenuClick: onMenuClick)
         }
     }
 }
