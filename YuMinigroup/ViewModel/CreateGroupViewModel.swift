@@ -13,9 +13,10 @@
 //      }
 //
 //  즉 검증 실패 분기에서만 titleError/descriptionError를 세팅하고(비지 않은 쪽은 nil로 리셋), 둘 다
-//  있으면 그 자리에서 바로 addGroup을 호출한다 — Android가 검증 통과 경로에서 에러 라이브데이터를
-//  건드리지 않는 것(EditText가 재입력 시 자체적으로 에러 표시를 지우는 플랫폼 동작에 기대는 것)까지
-//  바이트 수준으로 옮긴 것(브리프 Step 2 그대로).
+//  있으면 addGroup 호출 전에 두 에러를 모두 nil로 클리어한다 — Android는 EditText가 재입력 시 자체
+//  적으로 에러 표시를 지우는 플랫폼 동작에 기대 이 클리어가 없어도 되지만, SwiftUI에는 그런 자동
+//  동작이 없어 그대로 두면 "검증 실패 → 재입력 → addGroup 실패"로 이어질 때 유효한 필드 옆에 옛
+//  캡션이 재노출된다(리뷰 수정 — 브리프 의사코드의 공백, 스펙과 충돌 없음).
 //
 //  joinType은 Android RadioGroup(rb_auto 기본 checked)의 Boolean 미러로 isAutoJoin(Bool, 기본 true)을
 //  두고, addGroup 호출 시 Android와 동일하게 "0"(자동 승인)/"1"(승인 확인) 문자열로 변환한다.
@@ -54,6 +55,9 @@ final class CreateGroupViewModel: ObservableObject {
             state.descriptionError = trimmedDescription.isEmpty ? "그룹설명을 입력하세요." : nil
             return
         }
+        // 재시도 경로: 이전 검증 실패로 남아있던 캡션이 addGroup 실패 후에도 다시 보이지 않도록 클리어.
+        state.titleError = nil
+        state.descriptionError = nil
         repository.addGroup(title: trimmedTitle, description: trimmedDescription, joinType: isAutoJoin ? "0" : "1", image: image) { [weak self] resource in
             guard let self = self else {
                 return
