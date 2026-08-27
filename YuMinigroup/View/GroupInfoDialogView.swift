@@ -15,8 +15,17 @@
 //  ViewModel(그래도 살아있는 참조)에 조용히 반영되는 어색한 상태가 되므로 막는다.
 //
 //  onChange(of: state.completed)는 CreateArticleView가 state.resultArticle을 관찰하는 것과 같은
-//  관례 — nil 아니면 부모(FindGroupView)에게 완료를 알린다. .toast(message:)도 CreateArticleView +
-//  CreateArticleViewModel 관례를 그대로 옮긴 것(GroupInfoViewModel.swift 헤더 코멘트 참고).
+//  관례 — nil 아니면 부모(FindGroupView)에게 완료를 알린다.
+//
+//  리뷰 수정(Finding 1): 이 뷰 자신에 .toast(message: $viewModel.state.message)를 걸었더니
+//  ToastModifier가 "content.overlay(alignment: .bottom)"이라 이 카드(VStack) 자신의 하단 —
+//  즉 액션 버튼 바로 위 — 에 떴다(화면 하단이 아니라 카드 하단). 다이얼로그는 부모가 가운데에
+//  padding을 줘서 띄우는 작은 카드라 "화면 하단" 토스트 관례와 어긋난다. 그래서 이 뷰는 더 이상
+//  자신의 message를 직접 그리지 않고, onMessage(String) 콜백으로 부모에게 넘긴다 — 부모
+//  (FindGroupView)가 이미 화면 최상위에 갖고 있는 자기 자신의 .toast 표면에 그대로 실어 화면
+//  하단에 뜨게 한다(GroupInfoViewModel.swift 헤더 코멘트 참고). 실패 시에는 completed가 nil로
+//  남아 다이얼로그가 계속 열려 있으므로, 메시지만 화면 하단에 뜨고 다이얼로그는 그대로 보인다 —
+//  브리프가 요구한 동작 그대로다.
 //
 
 import SwiftUI
@@ -24,6 +33,7 @@ import SwiftUI
 struct GroupInfoDialogView: View {
     @ObservedObject var viewModel: GroupInfoViewModel
     let onClose: () -> Void
+    let onMessage: (String) -> Void
     let onCompleted: (GroupInfoViewModel.ButtonType) -> Void
 
     var body: some View {
@@ -35,7 +45,11 @@ struct GroupInfoDialogView: View {
         }
         .background(Color(uiColor: .systemBackground))
         .cornerRadius(6)
-        .toast(message: $viewModel.state.message)
+        .onChange(of: viewModel.state.message) { message in
+            if let message = message {
+                onMessage(message)
+            }
+        }
         .onChange(of: viewModel.state.completed) { completed in
             if let completed = completed {
                 onCompleted(completed)

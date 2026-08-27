@@ -15,12 +15,12 @@
 //  케이스에서 isProcessing = true를 세팅한다(GroupRemoteDataSource.performRemoval이
 //  completion(.loading)을 동기적으로 먼저 쏘므로 sendRequest() 호출과 동시에 true가 된다).
 //
-//  state.message를 GroupInfoDialogView 자신의 .toast로 보여주는 것은 CreateArticleView +
-//  CreateArticleViewModel과 동일한 관례다(브리프 Step4 목록엔 토스트 언급이 없지만, §5 일반 에러
-//  정책 — 실패 시 토스트/스낵바로 안내 — 을 지키려면 필요하다: 실패하면 completed가 nil로 남아
-//  다이얼로그가 계속 열려 있으므로 토스트가 정상적으로 보인다. 성공 시에는 onCompleted가 화면을
-//  곧장 닫으므로 Android의 OS 레벨 Toast와 달리 체감 노출 시간이 짧을 수 있다 — SwiftUI 뷰 트리에
-//  묶인 토스트의 알려진 한계).
+//  state.message는 이 VM 자신이 화면에 그리지 않는다(브리프 Step4 목록엔 토스트 언급이 없지만, §5
+//  일반 에러 정책 — 실패 시 토스트/스낵바로 안내 — 을 지키려면 어떤 형태로든 보여줘야 한다). 리뷰
+//  수정(Finding 1): GroupInfoDialogView가 이 값을 자신의 .toast로 직접 그리면 다이얼로그 카드
+//  하단(=버튼 바로 위)에 뜨는데, 화면 전체 기준 하단이어야 한다 — 그래서 GroupInfoDialogView는 이
+//  값이 바뀌는 것을 onMessage(String) 콜백으로 부모(FindGroupView)에게 넘기고, 부모가 자기 자신의
+//  화면 최상위 토스트에 실어 화면 하단에 띄운다(GroupInfoDialogView.swift 헤더 코멘트 참고).
 //
 
 import Foundation

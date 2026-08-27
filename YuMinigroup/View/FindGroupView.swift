@@ -15,14 +15,21 @@
 //  @State로 들고 있는다 — body 재평가는 이미 만들어진 같은 인스턴스를 계속 참조할 뿐이다.
 //
 //  가입신청 성공(onCompleted(.request)) 시 Android FindGroupActivity의 "setResult(RESULT_OK); finish()"
-//  를 그대로 미러해 이 화면 자신을 pop한 뒤 onJoined()로 GroupMain 새로고침을 호출부(Task 4)에
-//  위임한다.
+//  를 그대로 미러해 이 화면 자신을 pop하고 onJoined()로 GroupMain 새로고침을 호출부(Task 4)에
+//  위임한다 — 단, 리뷰 수정(Finding 2)으로 즉시 pop하지 않는다: Android의 Toast는 윈도우 레벨이라
+//  Activity가 finish()된 뒤에도 잠깐 화면에 남아 있는데, 이 화면의 .toast는 뷰 트리에 묶여 있어서
+//  pop과 동시에 사라진다. 그래서 dismiss()+onJoined()를 DispatchQueue.main.asyncAfter(1.2s)로
+//  늦춰 "신청완료" 토스트(Toast.swift 표시 시간 2초)가 최소한 일부라도 보일 시간을 확보한다
+//  (Android 생존 시간의 근사 미러). 다이얼로그 자체(selectedInfoViewModel = nil)는 그 지연과
+//  무관하게 즉시 닫는다.
 //
 //  .toast(message: $viewModel.state.message)를 ZStack 바깥(최상위)에 두는 이유: 딤 배경+다이얼로그가
 //  ZStack 안에서 그려지는 동안에도(뒤 목록에서 온) 이 화면 자체의 메시지가 다이얼로그에 가려지지
-//  않고 그 위에 보이도록 하기 위해서다(GroupInfoViewModel 자신의 성공/실패 메시지는
-//  GroupInfoDialogView가 별도로 자신의 .toast로 보여준다 — GroupInfoDialogView.swift 헤더 코멘트
-//  참고, 서로 다른 ViewModel의 message라 겹치지 않는다).
+//  않고 그 위에 보이도록 하기 위해서다. 리뷰 수정(Finding 1): GroupInfoViewModel 자신의 성공/실패
+//  메시지도 GroupInfoDialogView의 onMessage 콜백을 거쳐 바로 이 같은 state.message에 실어 보낸다 —
+//  다이얼로그 카드에 자체 토스트를 붙이면 화면 하단이 아니라 카드 하단(버튼 바로 위)에 뜨기
+//  때문이다(GroupInfoDialogView.swift 헤더 코멘트 참고). 화면 전체에 토스트 표면이 이 하나뿐이라
+//  두 출처(목록 자체 에러 / 다이얼로그 완료·실패)가 겹쳐도 한 번에 하나씩만 보이므로 문제 없다.
 //
 
 import SwiftUI
@@ -58,11 +65,18 @@ struct FindGroupView: View {
                 GroupInfoDialogView(
                     viewModel: infoViewModel,
                     onClose: { selectedInfoViewModel = nil },
+                    onMessage: { message in viewModel.state.message = message },
                     onCompleted: { completed in
                         selectedInfoViewModel = nil
                         if completed == .request {
-                            presentationMode.wrappedValue.dismiss()
-                            onJoined()
+                            // Finding 2: 위 헤더 코멘트 참고 — Android Toast(윈도우 레벨)는 Activity
+                            // finish() 후에도 남아 있지만, 이 화면의 토스트는 뷰 트리에 묶여 있어서
+                            // 즉시 pop하면 방금 onMessage로 실어 보낸 "신청완료" 토스트가 뜨기도 전에
+                            // 함께 사라진다 — 1.2초 지연해 최소한의 노출 시간을 확보한다.
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                                presentationMode.wrappedValue.dismiss()
+                                onJoined()
+                            }
                         }
                     }
                 )
