@@ -67,6 +67,11 @@
 		YU0000000000000000000119 /* Tab4ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000118 /* Tab4ViewModel.swift */; };
 		YU0000000000000000000121 /* Tab4View.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000120 /* Tab4View.swift */; };
 		YU0000000000000000000223 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000222 /* NoticeView.swift */; };
+		YU0000000000000000000225 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000224 /* SettingsView.swift */; };
+		YU0000000000000000000227 /* MemberManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000226 /* MemberManagementView.swift */; };
+		YU0000000000000000000229 /* DefaultSettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000228 /* DefaultSettingView.swift */; };
+		YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000230 /* MemberManagementViewModel.swift */; };
+		YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000232 /* DefaultSettingViewModel.swift */; };
 		YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000122 /* ReplyRemoteDataSource.swift */; };
 		YU0000000000000000000125 /* ReplyRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000124 /* ReplyRepository.swift */; };
 		YU0000000000000000000127 /* ArticleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000126 /* ArticleViewModel.swift */; };
@@ -179,6 +184,11 @@
 		YU0000000000000000000118 /* Tab4ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4ViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000120 /* Tab4View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4View.swift; sourceTree = "<group>"; };
 		YU0000000000000000000222 /* NoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000224 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000226 /* MemberManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberManagementView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000228 /* DefaultSettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000230 /* MemberManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberManagementViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000232 /* DefaultSettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000122 /* ReplyRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRemoteDataSource.swift; sourceTree = "<group>"; };
 		YU0000000000000000000124 /* ReplyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000126 /* ArticleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewModel.swift; sourceTree = "<group>"; };
@@ -359,6 +369,9 @@
 				YU0000000000000000000206 /* SeatView.swift */,
 				YU0000000000000000000214 /* TimetableView.swift */,
 				YU0000000000000000000220 /* MockTimetableView.swift */,
+				YU0000000000000000000224 /* SettingsView.swift */,
+				YU0000000000000000000226 /* MemberManagementView.swift */,
+				YU0000000000000000000228 /* DefaultSettingView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -401,6 +414,8 @@
 				YU0000000000000000000204 /* SeatViewModel.swift */,
 				YU0000000000000000000212 /* SemesterTimetableViewModel.swift */,
 				YU0000000000000000000218 /* MockTimetableViewModel.swift */,
+				YU0000000000000000000230 /* MemberManagementViewModel.swift */,
+				YU0000000000000000000232 /* DefaultSettingViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -638,6 +653,11 @@
 				YU0000000000000000000217 /* TimetableItem.swift in Sources */,
 				YU0000000000000000000219 /* MockTimetableViewModel.swift in Sources */,
 				YU0000000000000000000221 /* MockTimetableView.swift in Sources */,
+				YU0000000000000000000225 /* SettingsView.swift in Sources */,
+				YU0000000000000000000227 /* MemberManagementView.swift in Sources */,
+				YU0000000000000000000229 /* DefaultSettingView.swift in Sources */,
+				YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */,
+				YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -23,8 +23,11 @@
 //  이 화면에서 dismiss()를 불러도 presentationMode 환경값이 그 push 컨텍스트를 그대로 가리켜 정상
 //  동작한다 — UserDialogView가 이미 같은 API로 자신의 .sheet를 닫는 전례가 있다).
 //  Android는 isAdmin일 때만 보이는 ll_settings(→ SettingsActivity, 그룹 정보 수정) 행을 하나 더 갖고
-//  있지만, 브리프가 명시한 3섹션 계약에는 없고 그 화면 자체가 이번 마이그레이션 범위 밖(별도 태스크
-//  몫)이라 이식하지 않았다.
+//  있다 — 3차 Task 8에서 SettingsView(회원관리+모임정보 2탭)로 이식했다: groupSettingRow(탈퇴/폐쇄)
+//  바로 아래, content_tab4.xml 원본 순서(①ll_withdrawal ②ll_settings) 그대로 admin 전용 NavigationLink
+//  행을 추가한다. onGroupUpdated는 SettingsView의 모임정보 저장 성공을 GroupView까지 그대로
+//  통과시키는 콜백이다(GroupView가 실제 구현을 GroupViewModel.applyGroupUpdate로 채운다, 브리프
+//  Step 6) — 이 화면 자신은 groupItem 갱신 로직을 모른다.
 //
 //  ③어플리케이션 정보: ll_notice(공지사항 — NoticeView로 정적 화면 구현),
 //  ll_feedback(건의사항 — Android Intent.ACTION_SEND(message/rfc822) 대신 UIApplication.shared.open의
@@ -45,6 +48,10 @@ struct Tab4View: View {
     let appBarState: CollapsingAppBarState
     let isActive: Bool
     @Binding var scrollOffset: CGFloat
+
+    // SettingsView(모임정보 저장 성공)를 GroupView까지 그대로 통과시키는 콜백 — GroupView가
+    // GroupViewModel.applyGroupUpdate로 실제 구현을 채운다(브리프 Step 6).
+    let onGroupUpdated: (_ name: String, _ description: String, _ joinType: String, _ imageURL: String?) -> Void
 
     @Environment(\.presentationMode) private var presentationMode
     @State private var showLeaveConfirm = false
@@ -92,6 +99,15 @@ struct Tab4View: View {
 
             sectionHeader("소모임 설정")
             groupSettingRow
+
+            if viewModel.groupItem.isAdmin {
+                Divider().padding(.horizontal, 10)
+
+                NavigationLink(destination: SettingsView(groupItem: viewModel.groupItem, onUpdated: onGroupUpdated)) {
+                    infoRow(title: "설정")
+                }
+                .buttonStyle(.plain)
+            }
 
             sectionHeader("어플리케이션 정보")
             appInfoRows
