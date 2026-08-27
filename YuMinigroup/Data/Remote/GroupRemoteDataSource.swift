@@ -647,6 +647,15 @@ final class GroupRemoteDataSource {
                 }
                 remaining -= 1
                 if remaining == 0 {
+                    // 3차(Task 12) — 2차 mergeFirebaseGroupKeys(fe945d1)와 동일한 미매칭 폴백을
+                    // 1차 병합(가입한 그룹)에도 적용: 매칭되지 않은 항목은 key를 nil로 남기지 않고
+                    // LMS ID를 그대로 채운다. 비앱 그룹(Firebase 미등록 LMS 그룹)의 그룹채팅·게시글
+                    // Firebase 기록이 Android처럼 LMS ID를 키로 써 동작한다(스펙 §7-1). 부수 효과:
+                    // 게시글 Firebase 이중기록도 Articles/{lmsId}로 활성화된다. 미구성(위 mergeFirebaseKeys
+                    // 가드)/withCancel 경로는 폴백을 적용하지 않고 현행(LMS 결과 그대로 성공 처리) 유지.
+                    for index in result.indices where result[index].key == nil {
+                        result[index].key = result[index].id
+                    }
                     completion(.success(result))
                 }
             }, withCancel: { _ in

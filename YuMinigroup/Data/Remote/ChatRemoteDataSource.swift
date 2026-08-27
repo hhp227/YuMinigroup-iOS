@@ -22,9 +22,11 @@
 //  중복 제거한다(스펙 §3.5 "전송: ... childAdded 수신분과 key로 중복 제거").
 //
 //  Task 10: fetchChatRooms(ChatListView 전용, Android에 없는 신설 화면 — 스펙 §3.6)를 추가한다.
-//  그룹채팅방(UserGroupList equalTo(true) 병합)과 1:1(Messages/{uid} 1회 조회)을 DispatchGroup
-//  fan-in으로 병합한다 — GroupRemoteDataSource.resolveKeys/filterJoinRequestGroups의 remaining
-//  카운터 관례를 그대로 재사용한다(파일 하단 "MARK: - 채팅방 목록" 참고).
+//  그룹채팅방(UserGroupList equalTo(true) 병합)과 1:1을 DispatchGroup fan-in으로 병합한다 —
+//  GroupRemoteDataSource.resolveKeys/filterJoinRequestGroups의 remaining 카운터 관례를 그대로
+//  재사용한다(파일 하단 "MARK: - 채팅방 목록" 참고). Task 12(3차): 1:1은 REST shallow(?shallow=true)로
+//  상대 uid만 얕게 열거한 뒤 상대별 queryLimited(toLast: 10) SDK 조회로 전환했다(구현은
+//  fetchDirectChatRooms) — 실패 시 옛 전체 조회(fallbackFullRead)로 기능 무손실 강등.
 //
 
 import Foundation
@@ -224,14 +226,96 @@ final class ChatRemoteDataSource {
         })
     }
 
-    // Messages/{uid} 전체를 1회 조회 — 자식(key=상대 uid) 하나가 스레드 하나다. 이미 전체가 메모리에
-    // 있으므로 스레드마다 추가 네트워크 조회 없이 로컬에서만 마지막 메시지/상대 이름을 뽑는다(스펙
-    // §3.6 "전체 1회 조회"). 자식 순서는 Firebase 기본 정렬(명시 orderBy가 없으면 key 오름차순 —
-    // push key는 시간순으로 정렬되도록 설계돼 있어 fetchMessages의 queryOrderedByKey()와 동일한
-    // 시간순을 별도 쿼리 없이도 얻는다)에 의존한다.
+    // Task 12(3차) — ① REST shallow(?shallow=true)로 Messages/{uid}의 자식 key(=상대 uid)만 얕게
+    // 열거한다(Firebase iOS SDK에 얕은 조회 API가 없어 URLSession 직접 호출). 기존처럼 전체 스레드를
+    // 한 번에 내려받지 않으므로 대화 상대가 많고 스레드가 길수록 절감 폭이 크다(스펙 §3.6 개선).
+    // ② 얕은 열거로 얻은 상대 uid마다 Messages/{uid}/{상대}를 queryLimited(toLast: 10)으로 개별
+    // 조회해 마지막 메시지 preview/timestamp와, 역순 최대 10건 중 from != uid인 첫 메시지의 name을
+    // 뽑는다(fallbackFullRead와 동일 로직 범위, fan-in은 fetchGroupChatRooms와 동일한 remaining
+    // 카운터 관례). REST 열기 자체가 실패(규칙 거부·네트워크 오류·비JSON 등)하면 기능 무손실로
+    // fallbackFullRead(아래, 구 fetchDirectChatRooms 본문)로 강등한다.
     private static func fetchDirectChatRooms(root: DatabaseReference,
                                               currentUid: String,
                                               completion: @escaping ([ChatRoomItem]) -> Void) {
+        // DatabaseReference.url(Firebase iOS SDK) — root(루트 DatabaseReference)가 가리키는 위치의
+        // 데이터베이스 URL 문자열. root는 항상 루트 ref로 호출되므로 이 값이 곧 DB 루트 URL이다.
+        let databaseURL = root.url
+
+        guard let url = URL(string: "\(databaseURL)/Messages/\(currentUid).json?shallow=true") else {
+            fallbackFullRead(root: root, currentUid: currentUid, completion: completion)
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            // URLSession 콜백은 백그라운드 큐에서 오므로 이후 Firebase SDK 호출/completion을 메인
+            // 스레드로 명시 디스패치한다(Firebase 콜백 자체는 메인 큐 관례이므로 여기서 한 번만).
+            DispatchQueue.main.async {
+                guard error == nil, let data = data,
+                      let keys = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
+                    fallbackFullRead(root: root, currentUid: currentUid, completion: completion)   // 규칙 거부·비JSON 등 — 현행 전체 조회로 강등(기능 무손실)
+                    return
+                }
+                guard !keys.isEmpty else {
+                    completion([])
+                    return
+                }
+                let otherUids = Array(keys.keys)
+                var rooms: [String: ChatRoomItem] = [:]
+                var remaining = otherUids.count
+                let finish = {
+                    remaining -= 1
+                    if remaining == 0 {
+                        completion(otherUids.compactMap { rooms[$0] })
+                    }
+                }
+
+                for otherUid in otherUids {
+                    root.child("Messages").child(currentUid).child(otherUid)
+                        .queryOrderedByKey().queryLimited(toLast: 10)
+                        .observeSingleEvent(of: .value, with: { snapshot in
+                            var messages: [DataSnapshot] = []
+
+                            for case let messageSnapshot as DataSnapshot in snapshot.children {
+                                messages.append(messageSnapshot)
+                            }
+                            guard let lastMessage = messages.last else {
+                                finish()
+                                return
+                            }
+                            let preview = lastMessage.childSnapshot(forPath: "message").value as? String
+                            let timestamp = (lastMessage.childSnapshot(forPath: "timestamp").value as? NSNumber)?.int64Value
+
+                            // 조회 범위 자체가 이미 최근 10건(queryLimited(toLast: 10))이므로 그 안을
+                            // 역순 탐색해 from != currentUid(상대가 보낸)인 첫 메시지의 name을 상대
+                            // 이름으로 삼는다 — 없으면(10건 전부 내가 보낸 메시지) uid로 강등(기존 로직
+                            // 그대로 10건 범위).
+                            var title = otherUid
+
+                            for index in stride(from: messages.count - 1, through: 0, by: -1) {
+                                guard let from = messages[index].childSnapshot(forPath: "from").value as? String, from != currentUid else {
+                                    continue
+                                }
+                                title = messages[index].childSnapshot(forPath: "name").value as? String ?? otherUid
+                                break
+                            }
+                            rooms[otherUid] = ChatRoomItem(receiver: otherUid, isGroupChat: false, title: title,
+                                                            imageURL: EndPoint.userImage(uid: otherUid), preview: preview, timestamp: timestamp)
+                            finish()
+                        }, withCancel: { _ in
+                            finish()
+                        })
+                }
+            }
+        }.resume()
+    }
+
+    // 구 fetchDirectChatRooms 본문(이름만 변경, Task 12) — Messages/{uid} 전체를 1회 조회. 자식
+    // (key=상대 uid) 하나가 스레드 하나다. 이미 전체가 메모리에 있으므로 스레드마다 추가 네트워크
+    // 조회 없이 로컬에서만 마지막 메시지/상대 이름을 뽑는다. 자식 순서는 Firebase 기본 정렬(명시
+    // orderBy가 없으면 key 오름차순)에 의존한다. REST shallow 열거가 실패했을 때의 기능 무손실
+    // 폴백으로 쓰인다(위 fetchDirectChatRooms 참고) — 결과는 항상 완전하다.
+    private static func fallbackFullRead(root: DatabaseReference,
+                                          currentUid: String,
+                                          completion: @escaping ([ChatRoomItem]) -> Void) {
         root.child("Messages").child(currentUid).observeSingleEvent(of: .value, with: { snapshot in
             var rooms: [ChatRoomItem] = []
 

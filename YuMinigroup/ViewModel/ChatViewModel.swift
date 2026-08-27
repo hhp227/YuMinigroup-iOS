@@ -27,6 +27,12 @@
 //  observeNewMessages 호출을 초기 로드 완료 시점까지 미룬다 — startObserving/stopObserving의 시그니처와
 //  ChatView 호출부(onAppear/onDisappear)는 브리프 그대로다.
 //
+//  Task 12(3차): isInitialLoadComplete는 초기 로드가 "성공"했을 때만 true가 된다(fetchMessages의
+//  .success 분기). 실패 시에도 무조건 완료 처리하면 messages가 여전히 비어 있는 채로 afterKey가
+//  nil이 되어 위와 같은 전체 재생 문제가 실패 케이스에서도 그대로 발생하므로, 실패 시에는 관찰을
+//  보류하고 재진입(화면 재생성)으로 초기 로드가 다시 성공할 때까지 기다린다. 실패 토스트는 기존대로
+//  노출한다.
+//
 
 import Foundation
 
@@ -173,13 +179,19 @@ final class ChatViewModel: ObservableObject {
             switch result {
             case .success(let fetched):
                 self.onFetchSuccess(fetched, previousCount: previousCount, previousCursor: previousCursor)
+                // Task 12(3차) — 초기 로드 성공 시에만 관찰을 시작한다. 실패 시에도 무조건 완료
+                // 처리하면 messages가 비어 있어(fetch 실패로 아무것도 안 들어옴) afterKey가 nil이
+                // 되고, ChatRemoteDataSource가 필터 없는 bare reference로 childAdded를 붙여 대화방
+                // 전체 이력이 한 번에 재생되는 문제(위 헤더 코멘트 §3.5)가 실패 케이스에서도 그대로
+                // 발생한다. 실패는 관찰을 보류해 재시도(fetchPreviousPage 등)나 재진입으로 다시 초기
+                // 로드가 성공할 때까지 기다린다 — 실패 토스트(아래 .failure 분기)는 그대로 유지.
+                if isInitialLoad {
+                    self.isInitialLoadComplete = true
+                    self.attachObserverIfNeeded()
+                }
             case .failure(let error):
                 self.hasRequestedMore = false
                 self.state.message = error.localizedDescription
-            }
-            if isInitialLoad {
-                self.isInitialLoadComplete = true
-                self.attachObserverIfNeeded()
             }
         }
     }
