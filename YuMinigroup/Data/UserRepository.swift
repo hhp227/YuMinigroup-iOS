@@ -28,4 +28,9 @@ final class UserRepository {
     func updateProfileImage(imageData: Data, completion: @escaping (Resource<String>) -> Void) {
         remote.updateProfileImage(imageData: imageData, completion: completion)
     }
+
+    // Task 7(3차): 그룹 설정 회원관리 탭(MemberManagementView).
+    func fetchManagedMembers(groupId: String, completion: @escaping (Resource<[MemberItem]>) -> Void) {
+        remote.fetchManagedMembers(groupId: groupId, completion: completion)
+    }
 }

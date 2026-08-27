@@ -15,6 +15,11 @@
 //  치환형)을 librarySeatRooms(목록) + librarySeatDetail(id:)(상세, 헬퍼 함수 관례) 두 개로 추가한다.
 //  3차 Task 4(시간표)에서 Android URL_YU_TIMETABLE(치환 없는 고정 상수)을 timetable로 추가한다 —
 //  나머지 이연 URL(도서관 상세 외 유튜브 등)은 여전히 다른 태스크 몫.
+//  3차 Task 7(그룹 설정 데이터층)에서 Android MODIFY_GROUP/UPDATE_GROUP/GROUP_MEMBER_LIST를
+//  modifyGroup/updateGroup/groupMemberList로 추가한다(이전 헤더 코멘트의 "YAGNI로 제외" 목록에
+//  남아 있던 항목들 — 이 태스크로 해소됨). groupMemberList는 기존 memberList(share_member_list.acl,
+//  Tab3View 전체 회원 목록)와 다른 엔드포인트(share_group_member_list.acl, 그룹 설정 회원관리
+//  화면 전용)라 별도 상수로 둔다.
 //
 
 enum EndPoint {
@@ -27,6 +32,9 @@ enum EndPoint {
     static let createGroup = baseURL + "/ilos/community/share_group_insert.acl"
     static let registerGroup = baseURL + "/ilos/community/share_group_register.acl"
     static let groupImageUpdate = baseURL + "/ilos/community/share_group_image_update.acl"
+    static let modifyGroup = baseURL + "/ilos/community/share_group_modify.acl"
+    static let updateGroup = baseURL + "/ilos/community/share_group_update.acl"
+    static let groupMemberList = baseURL + "/ilos/community/share_group_member_list.acl"
     static let noPhotoImage = baseURL + "/ilos/images/community/share_nophoto.gif"
     static let groupArticleList = baseURL + "/ilos/community/share_list.acl"
     static let writeArticle = baseURL + "/ilos/community/share_insert.acl"

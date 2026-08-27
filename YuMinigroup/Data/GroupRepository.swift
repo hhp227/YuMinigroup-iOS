@@ -58,6 +58,23 @@ final class GroupRepository {
         remote.addGroup(title: title, description: description, joinType: joinType, image: image, completion: completion)
     }
 
+    // Task 7(3차): 모임정보 프리필(DefaultSettingView) — 그룹 설정 초기 로드.
+    func fetchGroupSetting(groupId: String, completion: @escaping (Resource<(name: String, description: String, joinType: String)>) -> Void) {
+        remote.fetchGroupSetting(groupId: groupId, completion: completion)
+    }
+
+    // Task 7(3차): 모임정보 저장(DefaultSettingView "수정") — LMS 업데이트 → 이미지(있을 때만) →
+    // Firebase Groups/{key} 표적 갱신.
+    func updateGroup(groupId: String,
+                      key: String?,
+                      title: String,
+                      description: String,
+                      joinType: String,
+                      image: UIImage?,
+                      completion: @escaping (Resource<(name: String, description: String, joinType: String, imageURL: String?)>) -> Void) {
+        remote.updateGroup(groupId: groupId, key: key, title: title, description: description, joinType: joinType, image: image, completion: completion)
+    }
+
     func leaveGroup(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
         remote.leaveGroup(groupId: groupId, key: key, completion: completion)
     }

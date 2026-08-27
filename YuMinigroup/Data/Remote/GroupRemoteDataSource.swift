@@ -200,6 +200,129 @@ final class GroupRemoteDataSource {
         }
     }
 
+    // MARK: - 그룹 설정 (Task 7: 3차 데이터층, SettingsView/DefaultSettingView)
+
+    // Android getGroup(:363) 대응 — GET modifyGroup?CLUB_GRP_ID=(퍼센트 인코딩), 쿠키(fetchMembers와
+    // 동일한 GET+쿼리스트링 관례). 필수(이름) 파싱 실패만 .error로 강등하고, 설명/가입방식은 각자
+    // 기본값(""/"0")으로 내려간다(스펙 §5.4 "프리필").
+    func fetchGroupSetting(groupId: String, completion: @escaping (Resource<(name: String, description: String, joinType: String)>) -> Void) {
+        completion(.loading)
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let encodedGroupId = groupId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? groupId
+        let url = "\(EndPoint.modifyGroup)?CLUB_GRP_ID=\(encodedGroupId)"
+
+        HttpClient.request(url, method: "GET", headers: ["Cookie": cookie]) { result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let html):
+                guard let setting = GroupRemoteDataSource.parseGroupSetting(from: html) else {
+                    completion(.error("그룹 정보를 불러오지 못했습니다."))
+                    return
+                }
+                completion(.success(setting))
+            }
+        }
+    }
+
+    // Android setGroup(:438) 대응 — POST updateGroup(CLUB_GRP_ID/GRP_NM/TXT/JOIN_DIV) → isError/GRP_NM.
+    // 성공 후: (1) 이미지가 있으면 uploadGroupImage(addGroup과 공용화된 헬퍼, 브리프 Step 3-1)로
+    // 업로드하고 imageURL을 groupImage(file:)로 확정 (2) Firebase Groups/{key} 표적 갱신(브리프
+    // Step 3-2, 결함 5 수정 — Android updateGroupDataToFirebase의 통째 setValue와 onCancelled 무응답
+    // 버그를 모두 피한다: 여기서는 전체 노드를 읽지 않고 updateChildValues로 3~4개 필드만 갱신하며,
+    // 그 호출 결과를 기다리지 않고 fire-and-forget한다 — addGroup의 insertGroupToFirebase와 동일
+    // 관례라 completion은 Firebase 호출과 무관하게 정확히 한 번만 불린다) (3) completion(.success).
+    func updateGroup(groupId: String,
+                      key: String?,
+                      title: String,
+                      description: String,
+                      joinType: String,
+                      image: UIImage?,
+                      completion: @escaping (Resource<(name: String, description: String, joinType: String, imageURL: String?)>) -> Void) {
+        completion(.loading)
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let formParams = [
+            "CLUB_GRP_ID": groupId,
+            "GRP_NM": title,
+            "TXT": description,
+            "JOIN_DIV": joinType
+        ]
+
+        HttpClient.request(EndPoint.updateGroup, method: "POST", headers: ["Cookie": cookie], formParams: formParams) { result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let body):
+                guard let data = body.data(using: .utf8),
+                      let response = try? JSONDecoder().decode(UpdateGroupResponse.self, from: data),
+                      !response.isError else {
+                    completion(.error("소모임 변경에 실패했습니다."))
+                    return
+                }
+                let groupName = response.grpNm
+
+                if let image = image {
+                    GroupRemoteDataSource.uploadGroupImage(groupId: groupId, image: image) { uploadResult in
+                        switch uploadResult {
+                        case .success:
+                            let imageURL = EndPoint.groupImage(file: "\(groupId).jpg")
+                            GroupRemoteDataSource.finishUpdateGroup(key: key,
+                                                                     name: groupName,
+                                                                     description: description,
+                                                                     joinType: joinType,
+                                                                     imageURL: imageURL,
+                                                                     completion: completion)
+                        case .failure(let error):
+                            completion(.error(error.localizedDescription))
+                        }
+                    }
+                } else {
+                    GroupRemoteDataSource.finishUpdateGroup(key: key,
+                                                             name: groupName,
+                                                             description: description,
+                                                             joinType: joinType,
+                                                             imageURL: nil,
+                                                             completion: completion)
+                }
+            }
+        }
+    }
+
+    // Android JsonObjectRequest 응답(isError/GRP_NM)을 그대로 옮긴 디코딩 타입 — CreateGroupResponse와
+    // 달리 이 응답 본문에는 CLUB_GRP_ID가 없다(Android setGroup도 response에서 groupId를 읽지 않고
+    // 호출측이 이미 아는 groupId를 그대로 쓴다 — 브리프 "동형 struct" 선택지).
+    private struct UpdateGroupResponse: Decodable {
+        let isError: Bool
+        let grpNm: String
+
+        private enum CodingKeys: String, CodingKey {
+            case isError
+            case grpNm = "GRP_NM"
+        }
+    }
+
+    // Firebase Groups/{key} 표적 갱신 + completion(.success) 마무리 — key/root가 없으면(Firebase
+    // 미등록/미구성) 갱신을 생략하고 LMS 성공만으로 completion한다(브리프 "key nil/미구성이면 생략").
+    private static func finishUpdateGroup(key: String?,
+                                           name: String,
+                                           description: String,
+                                           joinType: String,
+                                           imageURL: String?,
+                                           completion: @escaping (Resource<(name: String, description: String, joinType: String, imageURL: String?)>) -> Void) {
+        if let key = key, let root = FirebaseRef.database() {
+            var updates: [String: Any] = [
+                "name": name,
+                "description": description,
+                "joinType": joinType
+            ]
+            if let imageURL = imageURL {
+                updates["image"] = imageURL
+            }
+            root.child("Groups").child(key).updateChildValues(updates)
+        }
+        completion(.success((name: name, description: description, joinType: joinType, imageURL: imageURL)))
+    }
+
     // MARK: - 가입신청/신청취소 (Task 2: 2차 데이터층, GroupInfoDialogView)
 
     // Android GroupInfoViewModel.sendRequest(TYPE_REQUEST) + insertGroupToFirebase 대응. LMS는
@@ -282,12 +405,19 @@ final class GroupRemoteDataSource {
                 let groupId = response.clubGrpId.trimmingCharacters(in: .whitespaces)
 
                 if let image = image {
-                    GroupRemoteDataSource.uploadGroupImage(groupId: groupId,
-                                                            groupName: response.grpNm,
-                                                            description: description,
-                                                            joinType: joinType,
-                                                            image: image,
-                                                            completion: completion)
+                    GroupRemoteDataSource.uploadGroupImage(groupId: groupId, image: image) { uploadResult in
+                        switch uploadResult {
+                        case .success:
+                            GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
+                                                                         groupName: response.grpNm,
+                                                                         description: description,
+                                                                         joinType: joinType,
+                                                                         hasImage: true,
+                                                                         completion: completion)
+                        case .failure(let error):
+                            completion(.error(error.localizedDescription))
+                        }
+                    }
                 } else {
                     GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
                                                                  groupName: response.grpNm,
@@ -332,13 +462,12 @@ final class GroupRemoteDataSource {
     // 스펙 §3.4). HttpClient.session은 리다이렉트를 따라가지 않아 이 엔드포인트 특유의 302 응답이
     // 본문 없는 .success로 오는 경우도 있지만, 관측상 .failure(data==nil → AppError("응답이
     // 비어있습니다."))로 오는 경우도 있어 그 특정 메시지만 성공으로 강등한다(Android의 statusCode==302
-    // 분기 미러 — 브리프 Step 3).
-    private static func uploadGroupImage(groupId: String,
-                                          groupName: String,
-                                          description: String,
-                                          joinType: String,
-                                          image: UIImage,
-                                          completion: @escaping (Resource<(key: String?, group: GroupItem)>) -> Void) {
+    // 분기 미러 — 2차 브리프 Step 3).
+    //
+    // 3차 Task 7: addGroup(Step B)뿐 아니라 updateGroup(Step 1)도 이 업로드 플로우를 재사용해야 해서
+    // Firebase 기록(호출부마다 다른 후속 단계)과 분리한 공용 헬퍼로 승격했다 — 성공/302는
+    // Result.success(())로, 그 외 실패만 Result.failure로 알리고 그다음 무엇을 할지는 호출부에 맡긴다.
+    private static func uploadGroupImage(groupId: String, image: UIImage, completion: @escaping (Result<Void, Error>) -> Void) {
         let cookie = CookieStore.shared.cookieHeader ?? ""
         let fileName = "\(UUID().uuidString.replacingOccurrences(of: "-", with: "")).jpg"
 
@@ -352,24 +481,14 @@ final class GroupRemoteDataSource {
             switch result {
             case .failure(let error):
                 if (error as? AppError)?.message == "응답이 비어있습니다." {
-                    // 302/빈 본문 — Android와 동일하게 성공 취급하고 Step C로 진행한다.
-                    GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
-                                                                 groupName: groupName,
-                                                                 description: description,
-                                                                 joinType: joinType,
-                                                                 hasImage: true,
-                                                                 completion: completion)
+                    // 302/빈 본문 — Android와 동일하게 성공 취급한다.
+                    completion(.success(()))
                 } else {
-                    completion(.error(error.localizedDescription))
+                    completion(.failure(error))
                 }
             case .success:
                 // 응답 본문은 Android도 사용하지 않는다.
-                GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
-                                                             groupName: groupName,
-                                                             description: description,
-                                                             joinType: joinType,
-                                                             hasImage: true,
-                                                             completion: completion)
+                completion(.success(()))
             }
         }
     }
@@ -1058,7 +1177,9 @@ final class GroupRemoteDataSource {
 
     // Android "imageUrl.substring(imageUrl.indexOf("id=") + "id=".length(), imageUrl.lastIndexOf("&ext"))"
     // 그대로 — EndPoint.userImage(uid:)가 만드는 "...user_image_view.acl?id={uid}&ext=.jpg" 형태를 역파싱한다.
-    private static func extractUid(fromImageSrc src: String) -> String? {
+    // 3차 Task 7: UserRemoteDataSource.fetchManagedMembers도 동일한 src 형식(id=~&ext)을 역파싱해야 해서
+    // private을 걷어내 모듈 내부(같은 타깃)에서 재사용한다(브리프 "기존 extractUid(fromImageSrc:) 재사용").
+    static func extractUid(fromImageSrc src: String) -> String? {
         guard let idRange = src.range(of: "id="),
               let extRange = src.range(of: "&ext", options: .backwards),
               idRange.upperBound <= extRange.lowerBound else {
@@ -1084,5 +1205,79 @@ final class GroupRemoteDataSource {
             }
             return String(html[range])
         }
+    }
+
+    // MARK: - 그룹 설정 HTML 파싱 (Android getGroup(:363) 대응, Task 7)
+
+    // 이름(#wrtGroup value)만 필수 — 없으면 nil을 돌려줘 호출부가 .error로 강등한다(브리프 Step 2).
+    // 설명(#wrtExplain 내부 콘텐츠)과 가입방식(.radiobox 안 .chktype 중 checked)은 스코프를 못 찾으면
+    // 각자 기본값("", "0")으로 내려간다 — Android도 joinType 기본값이 "0"이다(getGroup:369).
+    private static func parseGroupSetting(from html: String) -> (name: String, description: String, joinType: String)? {
+        guard let nameTag = HtmlUtil.openTag(withId: "wrtGroup", in: html),
+              let rawName = HtmlUtil.attribute("value", in: nameTag) else {
+            return nil
+        }
+        let name = HtmlUtil.text(rawName)
+        var description = ""
+
+        if let explainBlock = HtmlUtil.elementById("wrtExplain", in: html) {
+            description = HtmlUtil.text(GroupRemoteDataSource.innerContent(ofElementBlock: explainBlock))
+        }
+        var joinType = "0"
+
+        if let radioboxSegment = GroupRemoteDataSource.elementByClass("radiobox", in: html) {
+            let chkTags = GroupRemoteDataSource.allTags(withAttribute: "class", equalTo: "chktype", in: radioboxSegment)
+
+            // Android는 for 루프에서 break 없이 매 "checked" 포함 요소마다 joinType을 계속 덮어써
+            // 마지막으로 매치된 요소가 최종값이 된다(Android getGroup:371-373 그대로) — .first가
+            // 아니라 .last(where:)로 동일 순회 순서를 재현한다.
+            if let checkedTag = chkTags.last(where: { $0.contains("checked") }),
+               let value = HtmlUtil.attribute("value", in: checkedTag) {
+                joinType = value
+            }
+        }
+        return (name: name, description: description, joinType: joinType)
+    }
+
+    // HtmlUtil.elementById(id:)와 동일한 "여는 태그의 태그명을 캡처해 그 태그명의 첫 닫는 태그까지"
+    // 균형 매칭 방식이되, id 대신 class="value" 정확 일치로 찾는다(HtmlUtil에는 없는 조회 축이라 이
+    // 파일에 로컬로 추가 — class="board-table"/"menu_list" 세그먼트를 위치-슬라이싱으로 자르던 기존
+    // 관례와 달리, radiobox 세그먼트는 그 뒤로 다른 폼 요소가 이어질 수 있어 닫는 태그까지로 범위를
+    // 제한하는 편이 더 안전하다).
+    private static func elementByClass(_ className: String, in html: String) -> String? {
+        let openTagPattern = "<([a-zA-Z0-9]+)[^>]*\\bclass=[\"']\(NSRegularExpression.escapedPattern(for: className))[\"'][^>]*>"
+
+        guard let openRegex = try? NSRegularExpression(pattern: openTagPattern, options: [.caseInsensitive]),
+              let openMatch = openRegex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              let tagNameRange = Range(openMatch.range(at: 1), in: html),
+              let openTagRange = Range(openMatch.range, in: html) else {
+            return nil
+        }
+        let tagName = String(html[tagNameRange])
+        let closeTag = "</\(tagName)>"
+
+        guard let closeTagRange = html.range(of: closeTag,
+                                              options: [.caseInsensitive],
+                                              range: openTagRange.upperBound..<html.endIndex) else {
+            return nil
+        }
+        return String(html[openTagRange.lowerBound..<closeTagRange.upperBound])
+    }
+
+    // elementById/elementByClass가 돌려주는 "여는 태그+내용+닫는 태그" 전체 블록에서 내용만 남긴다
+    // (Android Element.getContent() 대응 — Jericho는 내용만 별도로 얻을 수 있지만 HtmlUtil은 태그
+    // 균형 매칭 결과를 통째 문자열로만 주므로, 여기서 여는 태그 끝(첫 '>') 이후 ~ 마지막 "</" 이전을
+    // 잘라낸다. 블록 자체가 "openTag + content + closeTag" 형태로 끝나므로 마지막 "</"는 항상 closeTag의
+    // 시작이다).
+    private static func innerContent(ofElementBlock block: String) -> String {
+        guard let openEndIndex = block.firstIndex(of: ">") else {
+            return block
+        }
+        let afterOpenTag = String(block[block.index(after: openEndIndex)...])
+
+        guard let closeRange = afterOpenTag.range(of: "</", options: .backwards) else {
+            return afterOpenTag
+        }
+        return String(afterOpenTag[..<closeRange.lowerBound])
     }
 }

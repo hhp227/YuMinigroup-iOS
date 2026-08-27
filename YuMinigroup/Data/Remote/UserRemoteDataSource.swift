@@ -127,6 +127,92 @@ final class UserRemoteDataSource {
         }
     }
 
+    // MARK: - 그룹 회원 관리 (Task 7: 3차 그룹 설정 데이터층, MemberManagementView)
+
+    // Android getManagedMemberList(:33) 대응 — POST groupMemberList + CLUB_GRP_ID, 쿠키. Android는
+    // #listZone의 "직계 자식마다 내부 td 재귀 수집"이지만, 이 포팅은 HtmlUtil.rows(#listZone 안
+    // <tr>...</tr> 블록)로 행을 얻은 뒤 각 행의 td 블록(로컬 tdBlocks — UnivNoticeRemoteDataSource.
+    // tdBlocks/firstMatch와 동일한 파일별 로컬 헬퍼 관례, Task 2/4)에서 값을 뽑는다. td 인덱스/역할은
+    // Android 그대로: [0] 내부 첫 input value=학번, [1] 내부 첫 img src→uid(GroupRemoteDataSource.
+    // extractUid(fromImageSrc:) 재사용 — Task 7에서 internal로 승격됨), [2]=이름, [3]=학부/학과,
+    // [4]는 Android도 미사용, [5]=회원 구분, [6]=가입 일시. 행 단위 실패(태그/속성 누락)는 스킵하고
+    // (parseAnchor/parseGroupSegment와 동일 원칙), listZone 자체를 못 찾으면 .error로 강등한다(브리프
+    // Step 4).
+    func fetchManagedMembers(groupId: String, completion: @escaping (Resource<[MemberItem]>) -> Void) {
+        completion(.loading)
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let formParams = ["CLUB_GRP_ID": groupId]
+
+        HttpClient.request(EndPoint.groupMemberList, method: "POST", headers: ["Cookie": cookie], formParams: formParams) { result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let html):
+                guard let listZone = HtmlUtil.elementById("listZone", in: html) else {
+                    completion(.error("회원 목록을 불러오지 못했습니다."))
+                    return
+                }
+                completion(.success(UserRemoteDataSource.parseManagedMembers(from: listZone)))
+            }
+        }
+    }
+
+    private static func parseManagedMembers(from listZone: String) -> [MemberItem] {
+        HtmlUtil.rows(in: listZone).compactMap(UserRemoteDataSource.parseManagedMemberRow(_:))
+    }
+
+    // value는 이 경로에서 쓰지 않는 필드(Android도 이 생성자 호출에서 null로 넘긴다 — MemberItem.java
+    // 5-인자 생성자) — 빈 문자열로 채운다(브리프 "value는 이 경로 미사용 — 빈 문자열").
+    private static func parseManagedMemberRow(_ rowHtml: String) -> MemberItem? {
+        let tds = UserRemoteDataSource.tdBlocks(in: rowHtml)
+
+        guard tds.count > 6,
+              let inputTag = UserRemoteDataSource.firstMatch(pattern: "<input\\b[^>]*>", in: tds[0]),
+              let stuNum = HtmlUtil.attribute("value", in: inputTag),
+              let imgTag = UserRemoteDataSource.firstMatch(pattern: "<img\\b[^>]*>", in: tds[1]),
+              let rawSrc = HtmlUtil.attribute("src", in: imgTag),
+              let uid = GroupRemoteDataSource.extractUid(fromImageSrc: HtmlUtil.text(rawSrc)) else {
+            return nil
+        }
+        return MemberItem(
+            uid: uid,
+            name: HtmlUtil.text(tds[2]),
+            value: "",
+            stuNum: stuNum,
+            dept: HtmlUtil.text(tds[3]),
+            div: HtmlUtil.text(tds[5]),
+            regDate: HtmlUtil.text(tds[6])
+        )
+    }
+
+    // UnivNoticeRemoteDataSource.tdBlocks와 동일 — HtmlUtil.cells(in:tag:)는 텍스트만 남겨 input
+    // value/img src 같은 속성을 잃으므로, <td>...</td>의 원본 내부 HTML을 그대로 반환하는 로컬 헬퍼가
+    // 필요하다(이 파일에는 아직 없어 Task 7에서 추가).
+    private static func tdBlocks(in rowHtml: String) -> [String] {
+        let pattern = "<td[^>]*>(.*?)</td>"
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+            return []
+        }
+        let matches = regex.matches(in: rowHtml, range: NSRange(rowHtml.startIndex..., in: rowHtml))
+
+        return matches.compactMap { match in
+            guard let range = Range(match.range(at: 1), in: rowHtml) else {
+                return nil
+            }
+            return String(rowHtml[range])
+        }
+    }
+
+    private static func firstMatch(pattern: String, in html: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              let range = Range(match.range, in: html) else {
+            return nil
+        }
+        return String(html[range])
+    }
+
     // MARK: - SSO steps
 
     private func loginSSOPortal(id: String, password: String, completion: @escaping (Resource<User>) -> Void) {
