@@ -40,11 +40,16 @@
 //  '로 split — Android가 groupIdExtract(String,int) 오버로드 두 종류를 각기 쓰는 것과 동일)만 다르게
 //  써서 조회한다. 파싱은 <a onclick>이 아니라 id="accordion"&&class="accordion" 세그먼트 단위다(그룹
 //  카드 하나 = accordion 블록 하나). HtmlUtil에는 Jericho의 getFirstElementByClass 같은 DOM 스코프
-//  검색이 없어서, description(.menu_list .info[0])과 info 목록(a 하위 .info span)이라는 서로 다른
-//  두 스코프(스펙 §3.2)를 세그먼트 전체의 "모든 class=info 요소, 문서 순서" 하나로 단순화했다(브리프가
-//  "class="info" 요소 내부 텍스트들을 순서대로 수집"이라고 명시 — 브리프가 스펙보다 우선). 이 단순화가
-//  실제 마크업과 어긋나면(예: menu_list 밖에 info가 더 있어 인덱스가 밀리는 경우) description/joinType이
-//  잘못 매핑될 수 있다 — 실마크업 미검증(스펙 §7 위험 1)이라 Mac 인수 시 최우선 확인 대상.
+//  검색이 없어서, description/joinType(Android menuList.getAllElementsByClass("info"))과 info 목록
+//  (Android element.getFirstElement(A).getAllElementsByClass("info"))이라는 서로 다른 두 스코프
+//  (스펙 §3.2)를 accordion 세그먼트를 자를 때와 같은 관례("여는 태그의 시작 위치부터 끝까지"를
+//  서브세그먼트로 삼기)로 각각 재현한다: class="menu_list" 여는 태그 위치부터 세그먼트 끝까지가
+//  menu_list 서브세그먼트(description=[0], joinType=[1]), 첫 <a>...</a> 블록 내부(닫는 태그를 못
+//  찾으면 그 여는 태그 위치부터 세그먼트 끝까지로 폴백)가 info 문자열 스코프다(수정 라운드 1 — 최초
+//  구현은 두 스코프를 "세그먼트 전체의 모든 class=info 요소" 하나로 단순화했었는데, 사용자 승인 스펙과
+//  충돌해 리뷰에서 Important로 지적됨. task-1-report.md의 "수정 라운드 1" 절 참고). 두 스코프 모두 못
+//  찾거나 비어 있으면 해당 필드만 nil/빈 문자열로 강등한다 — 세그먼트 skip은 id/img/strong 실패
+//  시에만 한다(그 필드들은 GroupItem 자체를 만들 수 없기 때문).
 //
 //  minId/stopRequestMore(Android mMinId/mStopRequestMore 미러)는 인스턴스 필드라 find/request가 같은
 //  GroupRemoteDataSource 인스턴스를 쓰면 상태를 공유한다 — 화면당 ViewModel이 각자 GroupRepository()를
@@ -603,19 +608,24 @@ final class GroupRemoteDataSource {
         }
         let name = HtmlUtil.text(strongInner)
 
-        // 브리프가 스펙 §3.2의 두 스코프(.menu_list .info / a 하위 .info)를 "class=info 요소 내부
-        // 텍스트들을 순서대로 수집" 하나로 단순화했다 — infoTexts(in:) 코멘트 참고.
-        let infoTexts = GroupRemoteDataSource.infoTexts(in: segment)
+        // description/joinType 스코프: Android menuList.getAllElementsByClass("info") 대응.
+        // menuListInfoTexts(in:) 코멘트 참고 — 부족하면(요소가 없거나 1개뿐이면) 해당 필드만 nil.
+        let menuListTexts = GroupRemoteDataSource.menuListInfoTexts(in: segment)
+        let description = menuListTexts.first
+        var joinType: String?
 
-        guard infoTexts.count > 1 else {
-            return nil
+        if menuListTexts.count > 1 {
+            let joinTypeText = menuListTexts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+
+            joinType = joinTypeText == "가입방식: 자동 승인" ? "0" : "1"
         }
-        let description = infoTexts[0]
-        let joinTypeText = infoTexts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-        let joinType = joinTypeText == "가입방식: 자동 승인" ? "0" : "1"
+
+        // info 문자열 스코프: Android element.getFirstElement(A).getAllElementsByClass("info") 대응.
+        // anchorInfoTexts(in:) 코멘트 참고 — 스코프를 못 찾으면 빈 배열이라 info는 자연히 "".
+        let anchorTexts = GroupRemoteDataSource.anchorInfoTexts(in: segment)
         var info = ""
 
-        for text in infoTexts {
+        for text in anchorTexts {
             if text.contains("회원수"), let range = text.range(of: "생성일", options: .backwards) {
                 info += String(text[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines) + "\n"
             } else {
@@ -640,11 +650,47 @@ final class GroupRemoteDataSource {
         )
     }
 
-    // class="info" 요소들의 텍스트를 문서 순서대로 반환. Android는 description/joinType을
-    // menuList.getAllElementsByClass("info")에서, info 목록은 element.getFirstElement(A)
-    // .getAllElementsByClass("info")에서 따로 얻는다(서로 다른 DOM 스코프, 스펙 §3.2) — HtmlUtil에는
-    // Jericho의 getFirstElementByClass 같은 스코프 검색이 없어서 "세그먼트 내 모든 class=info 요소,
-    // 문서 순서"로 단순화했다(브리프 Step 3가 명시한 처리 — 브리프가 스펙보다 우선). elementById와
+    // description/joinType 서브세그먼트 — Android menuList.getAllElementsByClass("info") 대응.
+    // HtmlUtil에는 getFirstElementByClass 같은 DOM 스코프 검색이 없어서, accordion 세그먼트를 자를
+    // 때와 같은 관례로 class="menu_list" 여는 태그의 시작 위치부터 세그먼트 끝까지를 서브세그먼트로
+    // 삼는다(닫는 태그를 찾지 않는다 — 카드 하나에 menu_list 뒤로 다른 형제 블록이 이어지지 않는
+    // 마크업을 전제한다). 못 찾으면 빈 배열(호출부가 description_/joinType을 nil로 강등).
+    private static func menuListInfoTexts(in segment: String) -> [String] {
+        guard let menuListStart = GroupRemoteDataSource.firstMatchRange(
+            pattern: "<[a-zA-Z0-9]+\\b[^>]*\\bclass=[\"']menu_list[\"'][^>]*>",
+            in: segment
+        )?.lowerBound else {
+            return []
+        }
+        return GroupRemoteDataSource.infoTexts(in: String(segment[menuListStart...]))
+    }
+
+    // info 문자열 서브세그먼트 — Android element.getFirstElement(A).getAllElementsByClass("info")
+    // 대응. 세그먼트 안 첫 <a>...</a> 블록 내부만 본다(parseJoinedGroups의 anchor 캡처 그룹 패턴
+    // 재사용). 닫는 </a>를 못 찾으면(마크업 변형) 첫 <a 여는 태그 위치부터 세그먼트 끝까지로
+    // 폴백한다 — menu_list와 같은 위치-슬라이싱 관례. 첫 <a 자체가 없으면 빈 배열(info는 "").
+    private static func anchorInfoTexts(in segment: String) -> [String] {
+        if let anchorInner = GroupRemoteDataSource.firstCapturedGroup(pattern: "<a\\b[^>]*>(.*?)</a>", in: segment) {
+            return GroupRemoteDataSource.infoTexts(in: anchorInner)
+        }
+        guard let anchorStart = GroupRemoteDataSource.firstMatchRange(pattern: "<a\\b[^>]*>", in: segment)?.lowerBound else {
+            return []
+        }
+        return GroupRemoteDataSource.infoTexts(in: String(segment[anchorStart...]))
+    }
+
+    // firstMatch(pattern:in:)의 "매치된 문자열"이 아니라 "매치 위치(Range)"가 필요한 경우용 —
+    // menuListInfoTexts/anchorInfoTexts의 위치-슬라이싱 폴백에 쓴다.
+    private static func firstMatchRange(pattern: String, in html: String) -> Range<String.Index>? {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)) else {
+            return nil
+        }
+        return Range(match.range, in: html)
+    }
+
+    // class="info" 요소들의 텍스트를 문서 순서대로 반환 — menuListInfoTexts/anchorInfoTexts가 이미
+    // 스코프를 좁힌 서브세그먼트를 넘겨준다는 전제다(이 함수 자체는 스코프를 모른다). elementById와
     // 같은 한계로 태그가 중첩되면 닫는 태그 짝이 정확하지 않을 수 있다.
     private static func infoTexts(in segment: String) -> [String] {
         let pattern = "<([a-zA-Z0-9]+)\\b[^>]*\\bclass=[\"']info[\"'][^>]*>"
