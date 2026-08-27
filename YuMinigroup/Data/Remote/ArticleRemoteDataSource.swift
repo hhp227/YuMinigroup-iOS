@@ -589,6 +589,11 @@ final class ArticleRemoteDataSource {
         // <p>를 만날 때마다 증가하는 카운터를 youtube-player <p>를 만난 시점에 기록한 값과 동일하게,
         // 여기서는 그 시점까지 쌓인 images.count를 그대로 쓴다(두 로직이 같은 "<p>에 img가 있는가"
         // 술어를 공유하므로 값이 일치한다).
+        //
+        // youtubeId/youtubePosition 대입은 함께 묶어 원자적으로 처리한다(fix round 1) — Android는
+        // new YouTubeItem(...)과 .position 대입이 같은 try 블록 안에서 순차 실행되어 substring 실패
+        // 시 예외로 둘 다 미설정되므로, id 파싱이 실패(nil)했는데 position만 설정되는 상태가 없다.
+        // 여기서도 youtubeId(fromSrc:)가 nil을 반환하면 if let이 실패해 두 값 다 그대로 nil로 남는다.
         var images: [String] = []
         var youtubeId: String?
         var youtubePosition: Int?
@@ -598,8 +603,9 @@ final class ArticleRemoteDataSource {
                 images.append(image)
             } else if youtubeId == nil,
                       let youtubeTag = ArticleRemoteDataSource.openTag(class: "youtube-player", in: paragraph),
-                      let rawSrc = HtmlUtil.attribute("src", in: youtubeTag) {
-                youtubeId = ArticleRemoteDataSource.youtubeId(fromSrc: HtmlUtil.text(rawSrc))
+                      let rawSrc = HtmlUtil.attribute("src", in: youtubeTag),
+                      let extractedId = ArticleRemoteDataSource.youtubeId(fromSrc: HtmlUtil.text(rawSrc)) {
+                youtubeId = extractedId
                 youtubePosition = images.count
             }
         }
