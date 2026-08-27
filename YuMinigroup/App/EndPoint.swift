@@ -5,8 +5,9 @@
 //  Android app.EndPoint(interface 상수) 대응 — 1차분 전체 미러. {UID}/{FILE} 치환은
 //  URL 문자열 상수 대신 헬퍼 함수(userImage/groupImage)로 대체한다.
 //  2차 Task 1(그룹찾기/가입신청중/그룹생성 데이터층)에서 CREATE_GROUP/REGISTER/GROUP_IMAGE_UPDATE/
-//  NO_PHOTO_IMAGE를 추가했다. 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/GROUP_MEMBER_LIST/
-//  SEND_MESSAGE/TIMETABLE/영대소식/도서관/버스/유튜브)은 여전히 YAGNI로 제외.
+//  NO_PHOTO_IMAGE를 추가했다. 3차 Task 1(WebViewScreen 공통 컴포넌트)에서 URL_YU_SHUTTLE_BUS를
+//  shuttleBus로 추가했다. 나머지 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/GROUP_MEMBER_LIST/
+//  SEND_MESSAGE/TIMETABLE/영대소식/도서관/유튜브)은 여전히 YAGNI로 제외.
 //
 
 enum EndPoint {
@@ -35,6 +36,7 @@ enum EndPoint {
     static let profileImagePreview = baseURL + "/ilos/mp/myinfo_file_update.acl"
     static let profileImageUpdate = baseURL + "/ilos/mp/myinfo_insert.acl"
     static let schedule = "https://homep.yu.ac.kr/_app/calendarxml_u.php"
+    static let shuttleBus = "https://hcms.yu.ac.kr/main/life/information-on-the-school-bus.do"
 
     static func userImage(uid: String) -> String {
         baseURL + "/ilos/mp/user_image_view.acl?id=\(uid)&ext=.jpg"
