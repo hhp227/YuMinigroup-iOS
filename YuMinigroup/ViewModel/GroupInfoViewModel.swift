@@ -70,6 +70,12 @@ final class GroupInfoViewModel: ObservableObject {
         switch resource {
         case .loading:
             state.isProcessing = true
+            // 리뷰 수정 라운드 2: 이 message는 GroupInfoDialogView의 onChange(of:)(동등성 비교)로
+            // FindGroupView에 릴레이되는데, 아무도 이 값을 도중에 nil로 되돌리지 않는다(수정 전
+            // ToastModifier의 2초 자동 클리어는 릴레이 대상인 FindGroupViewModel.state.message 쪽에서만
+            // 일어나고, 이 VM 자신의 저장소는 그대로 남는다). 매 시도 시작마다 nil로 리셋해 두면 같은
+            // 문자열로 다시 실패해도 nil→text 전이가 보장되어 onChange가 매번 발화한다.
+            state.message = nil
         case .success:
             state.isProcessing = false
             state.message = successMessage
