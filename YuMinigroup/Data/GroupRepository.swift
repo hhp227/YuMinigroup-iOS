@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 final class GroupRepository {
     private let remote = GroupRemoteDataSource()
@@ -46,6 +47,15 @@ final class GroupRepository {
     // Task 2(2차): 신청취소(GroupInfoDialogView, TYPE_CANCEL).
     func cancelJoinRequest(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
         remote.cancelJoinRequest(groupId: groupId, key: key, completion: completion)
+    }
+
+    // Task 5(2차): 그룹 생성(CreateGroupView) — LMS insert → 이미지 multipart(있을 때만) → Firebase 원자 기록.
+    func addGroup(title: String,
+                  description: String,
+                  joinType: String,
+                  image: UIImage?,
+                  completion: @escaping (Resource<(key: String?, group: GroupItem)>) -> Void) {
+        remote.addGroup(title: title, description: description, joinType: joinType, image: image, completion: completion)
     }
 
     func leaveGroup(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {

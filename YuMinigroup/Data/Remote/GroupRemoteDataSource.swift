@@ -59,6 +59,7 @@
 //
 
 import Foundation
+import UIKit
 import FirebaseDatabase
 
 final class GroupRemoteDataSource {
@@ -246,6 +247,191 @@ final class GroupRemoteDataSource {
             }
             root.child("UserGroupList").child(uid).child(key).removeValue()
         }
+    }
+
+    // MARK: - 그룹 생성 (Task 5: 2차 데이터층, CreateGroupView)
+
+    // Android addGroup(:391) 대응. Step A(LMS insert) → Step B(이미지, 있을 때만) → Step C(Firebase
+    // 원자 기록) 3단계. 세 단계 모두 instance 상태(minId/stopRequestMore 등)를 쓰지 않으므로 이후
+    // 단계는 private static 헬퍼로 두었다 — weak self 캡처 없이 completion을 정확히 한 번만 호출하는
+    // 경로를 보장한다(self가 그 사이 해제돼도 결과가 유실될 여지가 없다).
+    func addGroup(title: String,
+                  description: String,
+                  joinType: String,
+                  image: UIImage?,
+                  completion: @escaping (Resource<(key: String?, group: GroupItem)>) -> Void) {
+        completion(.loading)
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let formParams = [
+            "GRP_NM": title,
+            "TXT": description,
+            "JOIN_DIV": joinType
+        ]
+
+        HttpClient.request(EndPoint.createGroup, method: "POST", headers: ["Cookie": cookie], formParams: formParams) { result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let body):
+                guard let data = body.data(using: .utf8),
+                      let response = try? JSONDecoder().decode(CreateGroupResponse.self, from: data),
+                      !response.isError else {
+                    completion(.error("그룹 생성에 실패했습니다."))
+                    return
+                }
+                let groupId = response.clubGrpId.trimmingCharacters(in: .whitespaces)
+
+                if let image = image {
+                    GroupRemoteDataSource.uploadGroupImage(groupId: groupId,
+                                                            groupName: response.grpNm,
+                                                            description: description,
+                                                            joinType: joinType,
+                                                            image: image,
+                                                            completion: completion)
+                } else {
+                    GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
+                                                                 groupName: response.grpNm,
+                                                                 description: description,
+                                                                 joinType: joinType,
+                                                                 hasImage: false,
+                                                                 completion: completion)
+                }
+            }
+        }
+    }
+
+    // Android JsonObjectRequest 응답(isError/CLUB_GRP_ID/GRP_NM)을 그대로 옮긴 디코딩 타입 — 서버가
+    // CLUB_GRP_ID를 숫자로 내려줄 가능성을 방어한다(Android의 JSONObject.getString은 숫자도 자동
+    // 문자열화하지만 Swift Decodable은 선언한 타입으로만 디코드하므로 String 우선 시도 후 Int 폴백).
+    private struct CreateGroupResponse: Decodable {
+        let isError: Bool
+        let clubGrpId: String
+        let grpNm: String
+
+        private enum CodingKeys: String, CodingKey {
+            case isError
+            case clubGrpId = "CLUB_GRP_ID"
+            case grpNm = "GRP_NM"
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            isError = try container.decode(Bool.self, forKey: .isError)
+            if let stringId = try? container.decode(String.self, forKey: .clubGrpId) {
+                clubGrpId = stringId
+            } else {
+                clubGrpId = String(try container.decode(Int.self, forKey: .clubGrpId))
+            }
+            grpNm = try container.decode(String.self, forKey: .grpNm)
+        }
+    }
+
+    // Android groupImageUpdate(:539) 대응 — multipart POST. 파일 파트 이름은 "file", 파일명은
+    // UUID(하이픈 제거)+".jpg", 바이트는 PNG 인코딩(확장자와 불일치하지만 Android 검증된 방식 그대로,
+    // 스펙 §3.4). HttpClient.session은 리다이렉트를 따라가지 않아 이 엔드포인트 특유의 302 응답이
+    // 본문 없는 .success로 오는 경우도 있지만, 관측상 .failure(data==nil → AppError("응답이
+    // 비어있습니다."))로 오는 경우도 있어 그 특정 메시지만 성공으로 강등한다(Android의 statusCode==302
+    // 분기 미러 — 브리프 Step 3).
+    private static func uploadGroupImage(groupId: String,
+                                          groupName: String,
+                                          description: String,
+                                          joinType: String,
+                                          image: UIImage,
+                                          completion: @escaping (Resource<(key: String?, group: GroupItem)>) -> Void) {
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let fileName = "\(UUID().uuidString.replacingOccurrences(of: "-", with: "")).jpg"
+
+        MultipartRequest.upload(EndPoint.groupImageUpdate,
+                                 headers: ["Cookie": cookie],
+                                 fileField: "file",
+                                 fileName: fileName,
+                                 mimeType: "image/jpeg",
+                                 fileData: image.pngData() ?? Data(),
+                                 formParams: ["CLUB_GRP_ID": groupId]) { result in
+            switch result {
+            case .failure(let error):
+                if (error as? AppError)?.message == "응답이 비어있습니다." {
+                    // 302/빈 본문 — Android와 동일하게 성공 취급하고 Step C로 진행한다.
+                    GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
+                                                                 groupName: groupName,
+                                                                 description: description,
+                                                                 joinType: joinType,
+                                                                 hasImage: true,
+                                                                 completion: completion)
+                } else {
+                    completion(.error(error.localizedDescription))
+                }
+            case .success:
+                // 응답 본문은 Android도 사용하지 않는다.
+                GroupRemoteDataSource.insertGroupToFirebase(groupId: groupId,
+                                                             groupName: groupName,
+                                                             description: description,
+                                                             joinType: joinType,
+                                                             hasImage: true,
+                                                             completion: completion)
+            }
+        }
+    }
+
+    // Android insertGroupToFirebase(:669) 대응 — 루트 push key로 Groups/{key}·UserGroupList/{uid}/{key}를
+    // updateChildValues 하나로 원자 기록한다(Firebase iOS SDK 메소드명 — Android/Web의 updateChildren에
+    // 대응, KnuMiniGroup-iOS GroupRemoteDataSource.insertGroupToFirebase와 동일 API). FirebaseRef.database()가
+    // nil이거나(미구성) 로그인 사용자
+    // uid가 없으면(방어적 가드) Firebase 기록을 생략하고 LMS 성공만으로 완성된 GroupItem을 돌려준다
+    // (key: nil — 브리프 Step 4). push key 자체가 nil로 오는 극단적인 경우도 같은 경로로 강등한다.
+    private static func insertGroupToFirebase(groupId: String,
+                                               groupName: String,
+                                               description: String,
+                                               joinType: String,
+                                               hasImage: Bool,
+                                               completion: @escaping (Resource<(key: String?, group: GroupItem)>) -> Void) {
+        let imageURL = hasImage ? EndPoint.groupImage(file: "\(groupId).jpg") : EndPoint.noPhotoImage
+        let user = PreferenceManager.shared.user
+
+        func makeGroupItem(key: String?) -> GroupItem {
+            GroupItem(
+                id: groupId,
+                key: key,
+                name: groupName,
+                image: imageURL,
+                info: nil,
+                description_: description,
+                joinType: joinType,
+                isAdmin: true,
+                author: user?.name ?? "",
+                authorUid: user?.uid,
+                memberCount: 1,
+                timestamp: Date(),
+                members: user?.uid.map { [$0: true] }
+            )
+        }
+
+        guard let root = FirebaseRef.database(),
+              let uid = user?.uid,
+              let key = root.childByAutoId().key else {
+            completion(.success((key: nil, group: makeGroupItem(key: nil))))
+            return
+        }
+        let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+        // 필드명은 Android Bean 직렬화와 동일하게(§3.4) — "admin"은 Android가 항상 false로 내려보내는
+        // 필드다(isAdmin이 아니다. Android GroupItem.isAdmin은 별도의 클라이언트 계산 필드).
+        let groupDict: [String: Any] = [
+            "admin": false,
+            "id": groupId,
+            "timestamp": timestamp,
+            "author": user?.name ?? "",
+            "authorUid": uid,
+            "image": imageURL,
+            "name": groupName,
+            "description": description,
+            "joinType": joinType,
+            "members": [uid: true],
+            "memberCount": 1
+        ]
+
+        root.updateChildValues(["Groups/\(key)": groupDict, "UserGroupList/\(uid)/\(key)": true])
+        completion(.success((key: key, group: makeGroupItem(key: key))))
     }
 
     // MARK: - 탈퇴/삭제 (Task 15에서 사용)
