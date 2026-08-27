@@ -26,7 +26,7 @@
 //  있지만, 브리프가 명시한 3섹션 계약에는 없고 그 화면 자체가 이번 마이그레이션 범위 밖(별도 태스크
 //  몫)이라 이식하지 않았다.
 //
-//  ③어플리케이션 정보: ll_notice(공지사항 — 아직 없는 화면이라 프로필과 같은 PlaceholderView 자리),
+//  ③어플리케이션 정보: ll_notice(공지사항 — NoticeView로 정적 화면 구현),
 //  ll_feedback(건의사항 — Android Intent.ACTION_SEND(message/rfc822) 대신 UIApplication.shared.open의
 //  mailto: URL로 옮겼다. 수신자/제목/본문 필드는 Tab4ViewModel.java의 문자열 그대로),
 //  ll_verinfo(버젼 정보 — Android VerInfoActivity 전체 화면 대신 CFBundleShortVersionString을 행
@@ -164,7 +164,7 @@ struct Tab4View: View {
     // Android ll_notice/ll_feedback/ll_verinfo 대응(ll_appstore/ll_share는 위 헤더 코멘트 참고로 드롭).
     private var appInfoRows: some View {
         VStack(spacing: 0) {
-            NavigationLink(destination: PlaceholderView(title: "공지사항", onMenuClick: {})) {
+            NavigationLink(destination: NoticeView()) {
                 infoRow(title: "공지사항")
             }
             .buttonStyle(.plain)

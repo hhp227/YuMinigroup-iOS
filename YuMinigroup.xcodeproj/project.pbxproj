@@ -66,6 +66,7 @@
 		YU0000000000000000000117 /* UserDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000116 /* UserDialogView.swift */; };
 		YU0000000000000000000119 /* Tab4ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000118 /* Tab4ViewModel.swift */; };
 		YU0000000000000000000121 /* Tab4View.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000120 /* Tab4View.swift */; };
+		YU0000000000000000000223 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000222 /* NoticeView.swift */; };
 		YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000122 /* ReplyRemoteDataSource.swift */; };
 		YU0000000000000000000125 /* ReplyRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000124 /* ReplyRepository.swift */; };
 		YU0000000000000000000127 /* ArticleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000126 /* ArticleViewModel.swift */; };
@@ -177,6 +178,7 @@
 		YU0000000000000000000116 /* UserDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDialogView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000118 /* Tab4ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4ViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000120 /* Tab4View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4View.swift; sourceTree = "<group>"; };
+		YU0000000000000000000222 /* NoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000122 /* ReplyRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRemoteDataSource.swift; sourceTree = "<group>"; };
 		YU0000000000000000000124 /* ReplyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000126 /* ArticleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewModel.swift; sourceTree = "<group>"; };
@@ -339,6 +341,7 @@
 				YU0000000000000000000112 /* Tab3View.swift */,
 				YU0000000000000000000116 /* UserDialogView.swift */,
 				YU0000000000000000000120 /* Tab4View.swift */,
+				YU0000000000000000000222 /* NoticeView.swift */,
 				YU0000000000000000000128 /* ArticleView.swift */,
 				YU0000000000000000000138 /* CreateArticleView.swift */,
 				YU0000000000000000000142 /* UpdateReplyView.swift */,
@@ -584,6 +587,7 @@
 				YU0000000000000000000117 /* UserDialogView.swift in Sources */,
 				YU0000000000000000000119 /* Tab4ViewModel.swift in Sources */,
 				YU0000000000000000000121 /* Tab4View.swift in Sources */,
+				YU0000000000000000000223 /* NoticeView.swift in Sources */,
 				YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */,
 				YU0000000000000000000125 /* ReplyRepository.swift in Sources */,
 				YU0000000000000000000127 /* ArticleViewModel.swift in Sources */,
