@@ -8,8 +8,10 @@
 //  캐러셀/헤더 행(GroupGridAdapter)은 범위 밖이라 이식하지 않는다.
 //
 //  그룹 셀 탭은 Task 11(GroupView)로 이어진다 — NavigationLink destination을
-//  PlaceholderView(title: 그룹 이름)에서 GroupView(groupItem: group)로 교체했다. 하단 3버튼은
-//  여전히 PlaceholderView를 push한다(그룹찾기/가입신청중 그룹/그룹 만들기는 각각 Task 12/13/14 몫).
+//  PlaceholderView(title: 그룹 이름)에서 GroupView(groupItem: group)로 교체했다. 하단 3버튼 중
+//  "그룹찾기"/"가입신청중 그룹"은 Task 4(2차)에서 FindGroupView/RequestView로 교체됐다 —
+//  bottomButton을 제네릭 destination 클로저로 바꿔 버튼마다 다른 화면을 push한다. "그룹 만들기"는
+//  아직 PlaceholderView를 push한다(Task 6 몫).
 //
 //  NavigationLink를 쓰려면 NavigationView 조상이 필요한데(iOS 15.6 타깃, NavigationStack 미사용),
 //  MainView/DrawerScaffold 트리에는 NavigationView가 없으므로 이 화면 자체에 로컬 NavigationView를
@@ -69,16 +71,24 @@ struct GroupMainView: View {
     // Android BottomNavigationView(navigation_find/navigation_request/navigation_create) 대응.
     private var bottomButtonBar: some View {
         HStack(spacing: 0) {
-            bottomButton(title: "그룹찾기", systemImage: "magnifyingglass")
-            bottomButton(title: "가입신청중 그룹", systemImage: "person.3.fill")
-            bottomButton(title: "그룹 만들기", systemImage: "plus.circle")
+            bottomButton(title: "그룹찾기", systemImage: "magnifyingglass") {
+                FindGroupView(onJoined: viewModel.fetchGroups)
+            }
+            bottomButton(title: "가입신청중 그룹", systemImage: "person.3.fill") {
+                RequestView()
+            }
+            bottomButton(title: "그룹 만들기", systemImage: "plus.circle") {
+                PlaceholderView(title: "그룹 만들기", onMenuClick: onMenuClick)
+            }
         }
         .padding(.vertical, 6)
         .background(Color(uiColor: .secondarySystemBackground))
     }
 
-    private func bottomButton(title: String, systemImage: String) -> some View {
-        NavigationLink(destination: PlaceholderView(title: title, onMenuClick: onMenuClick)) {
+    // destination을 제네릭 클로저로 받아 버튼마다 다른 화면을 push한다(브리프 Step4 시그니처).
+    private func bottomButton<Destination: View>(title: String, systemImage: String,
+                                                  @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink(destination: destination()) {
             VStack(spacing: 4) {
                 Image(systemName: systemImage)
                     .font(.system(size: 20))
