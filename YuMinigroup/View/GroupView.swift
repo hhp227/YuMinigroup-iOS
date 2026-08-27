@@ -76,6 +76,9 @@ struct GroupView: View {
     // 가능한 평범한 @State로 둔다.
     @State private var showCreateArticle = false
 
+    // Task 9 — 툴바 채팅 아이콘이 여는 그룹 채팅방(숨김 NavigationLink) 표시 여부.
+    @State private var showChat = false
+
     // imageHeight(200) - toolbarHeight(56) - tabHeight(48). CollapsingListScaffold 내부 계산과
     // 반드시 같은 값이어야 한다.
     private let maxCollapse: CGFloat = 96
@@ -169,6 +172,23 @@ struct GroupView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackgroundColorCompat(isCollapsed ? UIColor(Color.accentColor) : .clear)
         .navigationBarTintColorCompat(isCollapsed ? .white : UIColor(Color.accentColor))
+        // Task 9 — 툴바 채팅 아이콘. 틴트는 위 navigationBarTintColorCompat를 그대로 따르므로
+        // 접힘/펼침 색 전환이 자동 적용된다.
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showChat = true }) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")   // Android action_chat("채팅방") 대응
+                }
+            }
+        }
+        .background(
+            NavigationLink(isActive: $showChat) {
+                ChatView(receiver: viewModel.groupItem.key,   // 그룹 Firebase key — nil이면 ChatView가 안내 표시
+                         isGroupChat: true,
+                         chatName: viewModel.groupItem.name)
+            } label: { EmptyView() }
+            .hidden()
+        )
     }
 
     // 탭 전환 시 목적 탭이 이미 최상단이 아니면(Android가 접힌 채로 페이지만 바뀌는 것과 동일한

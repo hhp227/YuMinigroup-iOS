@@ -20,6 +20,10 @@
 //
 //  탭하면 Android UserDialogFragment(bottom dialog)에 대응하는 UserDialogView를 .sheet로 띄운다.
 //
+//  Task 9 — UserDialogView의 "메시지 보내기"가 onSendMessage()를 부르면 시트를 닫고(selectedMember =
+//  nil) chatTarget을 잡은 뒤 0.5초 뒤에 isChatActive를 켜 ChatView(1:1)를 push한다 — 시트 dismiss
+//  애니메이션과 push 애니메이션이 겹치지 않도록 하는, Task 6 handleCreated와 같은 관례다.
+//
 
 import SwiftUI
 
@@ -31,6 +35,10 @@ struct Tab3View: View {
     @Binding var scrollOffset: CGFloat
 
     @State private var selectedMember: MemberItem?
+
+    // Task 9 — UserDialogView "메시지 보내기" → ChatView(1:1) push 상태.
+    @State private var chatTarget: MemberItem?
+    @State private var isChatActive = false
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
@@ -64,10 +72,23 @@ struct Tab3View: View {
                 ProgressView()
                     .padding(.top, headerHeight + 60)
             }
+
+            NavigationLink(isActive: $isChatActive) {
+                if let chatTarget = chatTarget {
+                    ChatView(receiver: chatTarget.uid, isGroupChat: false, chatName: chatTarget.name)
+                }
+            } label: { EmptyView() }
+            .hidden()
         }
         .toast(message: $viewModel.state.message)
         .sheet(item: $selectedMember) { member in
-            UserDialogView(viewModel: UserViewModel(member: member))
+            UserDialogView(viewModel: UserViewModel(member: member), onSendMessage: {
+                selectedMember = nil
+                chatTarget = member
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isChatActive = true
+                }
+            })
         }
     }
 

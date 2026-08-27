@@ -12,14 +12,17 @@
 //  (GroupRemoteDataSource.parseMembers 참고), 아래 학번/학과 줄은 값이 있을 때만 그리는 nil-safe
 //  방어로 남겨둔다(향후 멤버 상세 API가 두 필드를 채우게 되면 자동으로 나타난다).
 //
-//  "메시지 보내기" 버튼은 Android가 ChatActivity로 바로 연결하는 것과 달리, 브리프 지시대로 2차(채팅
-//  연결) 전까지 항상 비활성 + "(준비중)" 라벨로 고정한다(onSendClick 미이식 — 연결점만 남겨둠).
+//  "메시지 보내기" 버튼은 Android UserDialogFragment.onSendClick가 ChatActivity로 바로 연결하는 것과
+//  동일하게, 탭하면 onSendMessage()를 호출해 호출부(Tab3View)가 ChatView(1:1)를 push하도록 위임한다.
+//  본인 프로필(viewModel.isSelf)이면 Android가 b_send를 GONE 처리하는 것과 같이 버튼 자체를 숨기고
+//  "닫기"만 전폭으로 보인다.
 //
 
 import SwiftUI
 
 struct UserDialogView: View {
     @ObservedObject var viewModel: UserViewModel
+    let onSendMessage: () -> Void
     @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
@@ -77,19 +80,20 @@ struct UserDialogView: View {
         .padding(10)
     }
 
-    // Android b_send(항상 비활성 — 2차 채팅 연결점)/b_close 대응.
+    // Android b_send(본인이면 GONE)/b_close 대응.
     private var actionBar: some View {
         HStack(spacing: 0) {
-            Button(action: {}) {
-                Text("메시지 보내기 (준비중)")
-                    .font(.system(size: 14))
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-            .disabled(true)
+            if !viewModel.isSelf {
+                Button(action: onSendMessage) {
+                    Text("메시지 보내기")
+                        .font(.system(size: 14))
+                        .foregroundColorCompat(.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
 
-            Divider()
+                Divider()
+            }
 
             Button(action: { presentationMode.wrappedValue.dismiss() }) {
                 Text("닫기")
