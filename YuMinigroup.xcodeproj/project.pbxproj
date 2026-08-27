@@ -81,6 +81,11 @@
 		YU0000000000000000000147 /* PictureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000146 /* PictureView.swift */; };
 		YU0000000000000000000148 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000149 /* ProfileViewModel.swift */; };
 		YU0000000000000000000150 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000151 /* ProfileView.swift */; };
+		YU0000000000000000000153 /* FindGroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000152 /* FindGroupViewModel.swift */; };
+		YU0000000000000000000155 /* GroupInfoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000154 /* GroupInfoViewModel.swift */; };
+		YU0000000000000000000157 /* GroupListContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000156 /* GroupListContent.swift */; };
+		YU0000000000000000000159 /* GroupInfoDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000158 /* GroupInfoDialogView.swift */; };
+		YU0000000000000000000161 /* FindGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000160 /* FindGroupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -157,6 +162,11 @@
 		YU0000000000000000000146 /* PictureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000149 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000151 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000152 /* FindGroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindGroupViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000154 /* GroupInfoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000156 /* GroupListContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListContent.swift; sourceTree = "<group>"; };
+		YU0000000000000000000158 /* GroupInfoDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoDialogView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000160 /* FindGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindGroupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -266,6 +276,9 @@
 				YU0000000000000000000142 /* UpdateReplyView.swift */,
 				YU0000000000000000000146 /* PictureView.swift */,
 				YU0000000000000000000151 /* ProfileView.swift */,
+				YU0000000000000000000156 /* GroupListContent.swift */,
+				YU0000000000000000000158 /* GroupInfoDialogView.swift */,
+				YU0000000000000000000160 /* FindGroupView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -297,6 +310,8 @@
 				YU0000000000000000000140 /* UpdateReplyViewModel.swift */,
 				YU0000000000000000000144 /* PictureViewModel.swift */,
 				YU0000000000000000000149 /* ProfileViewModel.swift */,
+				YU0000000000000000000152 /* FindGroupViewModel.swift */,
+				YU0000000000000000000154 /* GroupInfoViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -494,6 +509,11 @@
 				YU0000000000000000000147 /* PictureView.swift in Sources */,
 				YU0000000000000000000148 /* ProfileViewModel.swift in Sources */,
 				YU0000000000000000000150 /* ProfileView.swift in Sources */,
+				YU0000000000000000000153 /* FindGroupViewModel.swift in Sources */,
+				YU0000000000000000000155 /* GroupInfoViewModel.swift in Sources */,
+				YU0000000000000000000157 /* GroupListContent.swift in Sources */,
+				YU0000000000000000000159 /* GroupInfoDialogView.swift in Sources */,
+				YU0000000000000000000161 /* FindGroupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
