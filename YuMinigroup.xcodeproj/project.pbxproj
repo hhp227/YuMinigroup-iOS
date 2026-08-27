@@ -72,6 +72,11 @@
 		YU0000000000000000000229 /* DefaultSettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000228 /* DefaultSettingView.swift */; };
 		YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000230 /* MemberManagementViewModel.swift */; };
 		YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000232 /* DefaultSettingViewModel.swift */; };
+		YU0000000000000000000235 /* YouTubeItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000234 /* YouTubeItem.swift */; };
+		YU0000000000000000000237 /* YouTubeRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */; };
+		YU0000000000000000000239 /* YouTubeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000238 /* YouTubeRepository.swift */; };
+		YU0000000000000000000241 /* YoutubeSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000240 /* YoutubeSearchViewModel.swift */; };
+		YU0000000000000000000243 /* YouTubeSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000242 /* YouTubeSearchView.swift */; };
 		YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000122 /* ReplyRemoteDataSource.swift */; };
 		YU0000000000000000000125 /* ReplyRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000124 /* ReplyRepository.swift */; };
 		YU0000000000000000000127 /* ArticleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000126 /* ArticleViewModel.swift */; };
@@ -189,6 +194,11 @@
 		YU0000000000000000000228 /* DefaultSettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000230 /* MemberManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberManagementViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000232 /* DefaultSettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000234 /* YouTubeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000238 /* YouTubeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000240 /* YoutubeSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeSearchViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000242 /* YouTubeSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeSearchView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000122 /* ReplyRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRemoteDataSource.swift; sourceTree = "<group>"; };
 		YU0000000000000000000124 /* ReplyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000126 /* ArticleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewModel.swift; sourceTree = "<group>"; };
@@ -306,6 +316,7 @@
 				YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */,
 				YU0000000000000000000200 /* SeatRemoteDataSource.swift */,
 				YU0000000000000000000208 /* TimetableRemoteDataSource.swift */,
+				YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -322,6 +333,7 @@
 				YU0000000000000000000192 /* UnivNoticeRepository.swift */,
 				YU0000000000000000000202 /* SeatRepository.swift */,
 				YU0000000000000000000210 /* TimetableRepository.swift */,
+				YU0000000000000000000238 /* YouTubeRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -372,6 +384,7 @@
 				YU0000000000000000000224 /* SettingsView.swift */,
 				YU0000000000000000000226 /* MemberManagementView.swift */,
 				YU0000000000000000000228 /* DefaultSettingView.swift */,
+				YU0000000000000000000242 /* YouTubeSearchView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -416,6 +429,7 @@
 				YU0000000000000000000218 /* MockTimetableViewModel.swift */,
 				YU0000000000000000000230 /* MemberManagementViewModel.swift */,
 				YU0000000000000000000232 /* DefaultSettingViewModel.swift */,
+				YU0000000000000000000240 /* YoutubeSearchViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -445,6 +459,7 @@
 				YU0000000000000000000188 /* BbsItem.swift */,
 				YU0000000000000000000198 /* SeatItem.swift */,
 				YU0000000000000000000216 /* TimetableItem.swift */,
+				YU0000000000000000000234 /* YouTubeItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -658,6 +673,11 @@
 				YU0000000000000000000229 /* DefaultSettingView.swift in Sources */,
 				YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */,
 				YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */,
+				YU0000000000000000000235 /* YouTubeItem.swift in Sources */,
+				YU0000000000000000000237 /* YouTubeRemoteDataSource.swift in Sources */,
+				YU0000000000000000000239 /* YouTubeRepository.swift in Sources */,
+				YU0000000000000000000241 /* YoutubeSearchViewModel.swift in Sources */,
+				YU0000000000000000000243 /* YouTubeSearchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,6 +20,9 @@
 //  남아 있던 항목들 — 이 태스크로 해소됨). groupMemberList는 기존 memberList(share_member_list.acl,
 //  Tab3View 전체 회원 목록)와 다른 엔드포인트(share_group_member_list.acl, 그룹 설정 회원관리
 //  화면 전용)라 별도 상수로 둔다.
+//  3차 Task 9(유튜브 검색)에서 Android URL_YOUTUBE_API/YoutubeSearchViewModel.API_KEY를
+//  youtubeSearch/youtubeApiKey로 추가한다 — 나머지 이연 목록에 남아있던 마지막 항목(유튜브)이 이
+//  태스크로 해소됨.
 //
 
 enum EndPoint {
@@ -55,6 +58,8 @@ enum EndPoint {
     static let yuNoticeList = "https://www.yu.ac.kr/main/intro/yu-news.do?mode=list"
     static let librarySeatRooms = "https://slib.yu.ac.kr/Clicker/GetClickerReadingRooms"
     static let timetable = baseURL + "/ilos/st/main/pop_academic_timetable_form.acl"
+    static let youtubeSearch = "https://www.googleapis.com/youtube/v3/search"
+    static let youtubeApiKey = "AIzaSyCHF6p97aduruLMxgCuEVfFaKUiGPcMuOQ"   // Android 하드코딩 미러, 2026-08-27 유효 확인
 
     static func userImage(uid: String) -> String {
         baseURL + "/ilos/mp/user_image_view.acl?id=\(uid)&ext=.jpg"
