@@ -14,8 +14,11 @@ import Foundation
 import Combine
 
 // Android res/menu/activity_main_drawer.xml 항목 순서 그대로(로그아웃은 라우트가 아니라 액션이라 제외).
+// Task 10: chatList는 Android 드로어 메뉴에 없는 신설 항목이라(스펙 §4.5) 대응 원본 순서가 없다 —
+// 스펙이 지시한 대로 groupMain 바로 다음에 끼워 넣는다(CaseIterable 순서 = 드로어 노출 순서).
 enum MainRoute: CaseIterable, Equatable {
     case groupMain
+    case chatList
     case univNotice
     case timetable
     case librarySeat

@@ -96,6 +96,8 @@
 		YU0000000000000000000177 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000176 /* ChatViewModel.swift */; };
 		YU0000000000000000000179 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000178 /* ChatView.swift */; };
 		YU0000000000000000000181 /* MessageRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000180 /* MessageRow.swift */; };
+		YU0000000000000000000183 /* ChatListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000182 /* ChatListViewModel.swift */; };
+		YU0000000000000000000185 /* ChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000184 /* ChatListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -187,6 +189,8 @@
 		YU0000000000000000000176 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000178 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000180 /* MessageRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRow.swift; sourceTree = "<group>"; };
+		YU0000000000000000000182 /* ChatListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000184 /* ChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -304,6 +308,7 @@
 				YU0000000000000000000164 /* RequestView.swift */,
 				YU0000000000000000000168 /* CreateGroupView.swift */,
 				YU0000000000000000000178 /* ChatView.swift */,
+				YU0000000000000000000184 /* ChatListView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -341,6 +346,7 @@
 				YU0000000000000000000162 /* RequestViewModel.swift */,
 				YU0000000000000000000166 /* CreateGroupViewModel.swift */,
 				YU0000000000000000000176 /* ChatViewModel.swift */,
+				YU0000000000000000000182 /* ChatListViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -554,6 +560,8 @@
 				YU0000000000000000000177 /* ChatViewModel.swift in Sources */,
 				YU0000000000000000000179 /* ChatView.swift in Sources */,
 				YU0000000000000000000181 /* MessageRow.swift in Sources */,
+				YU0000000000000000000183 /* ChatListViewModel.swift in Sources */,
+				YU0000000000000000000185 /* ChatListView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
