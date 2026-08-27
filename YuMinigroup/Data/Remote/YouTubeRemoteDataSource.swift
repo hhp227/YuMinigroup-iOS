@@ -48,13 +48,22 @@ final class YouTubeRemoteDataSource {
 
     // MARK: - URL 인코딩 (스펙 §2 결함 6)
 
-    // RFC 3986 unreserved(알파벳/숫자/-._~)만 남기고 전부 percent-encoding한다 — q가 maxResults·type
-    // 앞에 오는 중간 파라미터라 &/=/공백 등이 그대로 남으면 뒤 파라미터를 깨뜨린다.
-    private static func percentEncode(_ query: String) -> String {
-        var allowed = CharacterSet.alphanumerics
+    // RFC 3986 unreserved 문자(ASCII A-Z/a-z/0-9와 -._~)만 리터럴로 나열해 허용 집합을 만든다. 두 가지
+    // 함정을 모두 피하기 위해서다:
+    //  ① CharacterSet.alphanumerics는 "영숫자"가 아니라 유니코드 문자 범주(Letter/Number) 전체다 —
+    //     한글 음절(Hangul Syllable, 카테고리 Lo "Other Letter")도 여기 포함돼 "허용됨"으로 통과한다.
+    //     그 결과 한글 검색어가 percent-encoding을 건너뛰고 원문 그대로 URL 문자열에 섞여 들어가고,
+    //     URL(string:)이 그 미인코딩 유니코드를 못 읽어 "잘못된 URL"로 요청 자체가 실패한다(주
+    //     사용자층인 한국어 검색어에서 사실상 매번 실패하는 리그레션이었다 — 리뷰 Important 1).
+    //  ② 그렇다고 CharacterSet.urlQueryAllowed로 바꾸는 것도 오답이다 — 그 집합은 &/=/? 같은 쿼리
+    //     예약문자를 "허용"에 포함하므로, 검색어 안에 &가 있으면 다시 미인코딩된 채로 남아 뒤의
+    //     maxResults/type 파라미터를 깨뜨리는 원래 결함(스펙 §2 결함 6)이 재발한다.
+    // 그래서 ASCII 리터럴 62자(A-Z/a-z/0-9)+-._~ 4자만 못박아 두 함정을 동시에 피한다 — 한글·공백·
+    // &/=?는 전부 percent-encoding 대상이 되고, 순수 ASCII 영숫자·구두점만 그대로 남는다.
+    private static let queryValueAllowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
-        allowed.insert(charactersIn: "-._~")
-        return query.addingPercentEncoding(withAllowedCharacters: allowed) ?? query
+    private static func percentEncode(_ query: String) -> String {
+        query.addingPercentEncoding(withAllowedCharacters: YouTubeRemoteDataSource.queryValueAllowed) ?? query
     }
 
     // MARK: - JSON 파싱 (스펙 §6.2)
