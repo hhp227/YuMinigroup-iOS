@@ -82,6 +82,39 @@
 - [ ] **채팅 실시간 재진입 시 중복 수신 확인**: `afterKey`로 필터 쿼리(`queryStarting(atValue:)`)를 등록해 관찰을 시작한 뒤 화면을 이탈(무필터 `ref`로 `removeObserver` 호출)했다가 재진입할 때, 기존에 이미 수신한 메시지가 `childAdded`로 다시 중복 발생하지 않는지 확인하세요(필터 쿼리로 등록·무필터 ref로 해제하는 교차 패턴이라 이론상 위험 지점, Task 7 이연).
 - [ ] **Firebase 쿼리·트랜잭션 시그니처 실기기 컴파일 확인**: `queryStarting(atValue:)` / `queryEnding(atValue:)` / `queryEqual(toValue:)` / `runTransactionBlock` / `updateChildValues`가 실제 Firebase iOS SDK 버전과 시그니처가 일치해 정상 컴파일되는지 확인하세요(5.1-1과 동일 지점, 컴파일 성공 후에도 별도로 체크).
 - [ ] **가입 그룹 목록(1차) LMS ID 폴백 — 3차에서 해소(fix round 1로 커버리지 보강)**: 1차 `mergeFirebaseKeys`/`resolveKeys`(가입한 그룹, GroupMainView)에 2차 `mergeFirebaseGroupKeys`(그룹찾기, `fe945d1`)와 동일한 "매칭 실패 시 key = LMS ID" 폴백을 적용했습니다(Task 12, 3차) — `resolveKeys` 완료 콜백(성공 경로, `remaining == 0` 지점)뿐 아니라, `UserGroupList/{uid}`가 비어 있어 `resolveKeys` 자체를 호출하지 않고 조기 반환하는 두 지점(스냅샷에 자식이 없을 때 / keys가 비었을 때)에도 동일 폴백(`applyLmsIdKeyFallback`)을 적용했습니다(fix round 1, Finding 3) — 비앱 그룹만 가입한 계정(이번 부채가 가장 먼저 겨냥한 케이스)은 애초에 `UserGroupList`가 비어 있으므로 이 보강이 없으면 여전히 key==nil로 남습니다. 비앱 그룹의 그룹채팅 진입이 더 이상 key==nil 가드에 막히지 않아야 합니다. **실기기 검증**: 비앱 그룹(Firebase 미등록 LMS 그룹)"만" 가입된 계정(다른 정식 그룹은 하나도 없는 케이스 우선)으로 그룹 진입 → 그룹채팅이 "채팅을 사용할 수 없습니다" 없이 정상 진입되는지 확인 → 해당 그룹에서 게시글 작성 후 Firebase 콘솔에서 `Articles/{lmsId}` 이중기록이 함께 생기는지 확인(부수 효과). Firebase 조회 자체가 실패(withCancel)하거나 `FirebaseRef.database()`가 nil인 경우는 폴백이 적용되지 않고 현행대로 LMS 결과만으로 성공 처리되므로 별도 크래시가 없는지도 함께 확인.
-- [ ] **DM 목록 REST shallow 하드닝 — fix round 1(Finding 1, 2)**: `fetchDirectChatRooms`의 REST shallow 요청(`ChatRemoteDataSource.swift`)이 ① HTTP 상태코드 200 및 응답 JSON에 `"error"` 키가 없는지까지 확인해야 진짜 성공으로 간주하고, 아니면(권한 거부 401 등 포함) `fallbackFullRead`로 강등하도록 고쳤습니다 — **실기기에서 실제 요청 URL을 1회 로깅해 확인**(`performShallowFetch`의 `urlString` 생성 직후 임시 `print`나 브레이크포인트로) ② 트레일링 슬래시 유무에 따라 `databaseURL`이 정규화되어 `.../rtdb-host/Messages/{uid}.json?shallow=true`처럼 `//`가 이중으로 붙지 않는지, ③ Firebase Auth 세션이 있는 테스트 계정(`22000000`/`TestUser`)에서는 URL 끝에 `&auth=<token>`이 붙는지, 실 SSO 계정(Firebase Auth 세션 없음 — 대다수)에서는 `&auth=` 없이 `?shallow=true`만으로 요청되는지 확인하세요. DM 방이 있는 계정으로 채팅 목록(⑬)을 열어 REST 응답이 200으로 성공하는 경우와(정상 시나리오), RTDB 규칙이 이 경로를 거부하는 경우(있다면) 양쪽 다 방 목록이 비지 않고 정상 노출되는지(후자는 `fallbackFullRead` 강등 경로) 확인하세요.
+- [ ] **DM 목록 REST shallow 하드닝 — fix round 1(Finding 1, 2)**: `fetchDirectChatRooms`의 REST shallow 요청(`ChatRemoteDataSource.swift`)이 ① HTTP 상태코드 200 및 응답 JSON에 `"error"` 키가 없는지까지 확인해야 진짜 성공으로 간주하고, 아니면(권한 거부 401 등 포함) `fallbackFullRead`로 강등하도록 고쳤습니다 — **실기기에서 실제 요청 URL을 1회 로깅해 확인하되, `auth=` 쿼리 값(있다면 Firebase ID 토큰)은 로그/캡처에 원문으로 남기지 말고 마스킹(예: 앞 6자만 출력하거나 `<redacted>`로 치환)한 뒤 나머지 URL 구조만 확인하세요**(`performShallowFetch`의 `urlString` 생성 직후 임시 `print`나 브레이크포인트로 — 토큰이 실린 쿼리 문자열을 그대로 로깅/스크린샷하지 않도록 주의) ② 트레일링 슬래시 유무에 따라 `databaseURL`이 정규화되어 `.../rtdb-host/Messages/{uid}.json?shallow=true`처럼 `//`가 이중으로 붙지 않는지, ③ Firebase Auth 세션이 있는 테스트 계정(`22000000`/`TestUser`)에서는 URL 끝에 `&auth=<token>`이 붙는지(위 마스킹 규칙 적용), 실 SSO 계정(Firebase Auth 세션 없음 — 대다수)에서는 `&auth=` 없이 `?shallow=true`만으로 요청되는지 확인하세요. DM 방이 있는 계정으로 채팅 목록(⑬)을 열어 REST 응답이 200으로 성공하는 경우와(정상 시나리오), RTDB 규칙이 이 경로를 거부하는 경우(있다면) 양쪽 다 방 목록이 비지 않고 정상 노출되는지(후자는 `fallbackFullRead` 강등 경로) 확인하세요.
 
 이 목록에 없는 세부 사항은 `.superpowers/sdd/2026-08-27-phase2-groups-chat/progress.md`의 각 태스크 항목에 전부 기록되어 있습니다.
+
+## 6. 3차 (second 브랜치) 추가 체크리스트
+
+이 섹션은 3차(대학유틸 4종 + 그룹 설정 + 유튜브 + 기술부채 3건, `second` 브랜치, 베이스 `fe945d1`)에서 추가된 항목입니다. 신규 파일은 29종(뷰 10 + ViewModel 7 + Data/Remote+Repository 8 + Dto 4, pbxproj ID 186~243, 최종 정합 스윕에서 4곳 등록·ID 연번·중복 없음 확인 완료) + 에셋 1건(`yu_library_seat01`)입니다. 관련 문서: `docs/superpowers/specs/2026-08-27-phase3-utils-settings-youtube-design.md`(설계), `docs/superpowers/plans/2026-08-27-phase3-utils-settings-youtube.md`(계획), `.superpowers/sdd/2026-08-27-phase3-utils-settings-youtube/progress.md`(태스크별 진행 로그·리뷰 이연 사항 전체).
+
+### 6.1 빌드 (⌘B) — 위험도 높은 순
+
+1. **`YuMinigroup/Data/Remote/ChatRemoteDataSource.swift`의 `import FirebaseAuth` 신규 추가 + `URLSession.shared.dataTask` 직접 REST 호출**(기술부채 Step 3, fix round 1) — 2차에 없던 신규 import라 패키지 그래프/컴파일 확인 1순위.
+2. **`YuMinigroup/Data/Remote/GroupRemoteDataSource.swift`의 `updateGroup`(Task 7)의 `updateChildValues` 표적 갱신** — 2차 §5.1-1과 동일한 Firebase iOS SDK 시그니처 의존 지점이 하나 더 늘었습니다.
+3. **`YuMinigroup/View/WebViewScreen.swift`(Task 1)의 WKWebView `UIViewRepresentable` + `WKWebpagePreferences.allowsContentJavaScript`(iOS14+)** — 영대소식 상세/좌석 상세/버스 3개 화면이 공유. 유튜브 상세 인앱 재생(`ArticleView`의 `YoutubeEmbedView`)은 별도 소형 representable이라 이 킷을 재사용하지 않으므로 독립적으로도 확인.
+4. **`YuMinigroup/View/MockTimetableView.swift`(Task 5)의 iOS15 커스텀 오버레이 다이얼로그**(TextField 포함 — `.alert`로 못 담아 2차 `GroupInfoDialogView` 관례로 자체 구현) — 컴파일뿐 아니라 레이아웃도 확인.
+5. **`YuMinigroup/Data/Remote/SeatRemoteDataSource.swift`(Task 3)의 JSONSerialization 유연 디코딩** — 컴파일 이슈보단 실 API 응답의 키 이름/타입이 스펙과 다를 때 항목이 전부 skip될 리스크(6.2 ⑱ 참고).
+
+빌드가 성공하면 6.2로, 실패하면 위 우선순위대로 확인합니다.
+
+### 6.2 런타임 인수 체크리스트 (실기기 권장)
+
+- [ ] **⑮ 신규 파서 4종 실마크업**: 영대소식 목록(`class="board-table"` → `<tbody>` → `<tr>`), 학기시간표(`class="bbslist"` → 최대 26행×6열), 그룹설정 회원관리(`id="listZone"` → `<tr>`/`<td>`), 그룹설정 모임정보 프리필(`id="wrtGroup"` value / `id="wrtExplain"` innerHTML / `.radiobox` 안 `.chktype` `checked`) — 4곳 전부 실 LMS 마크업으로 파싱 성공(빈 목록/에러 강등이 아닌 실제 데이터) 확인.
+- [ ] **⑯ WKWebView 화면 4종**: 영대소식 상세(`WebViewScreen`, push), 도서관 좌석 상세(`WebViewScreen`, push), 순환버스 시간표(`WebViewScreen`, 드로어 루트), 유튜브 embed 인앱 재생(`ArticleView`의 `YoutubeEmbedView`, `playsinline=1`) — 4곳 전부 로드/줌/스크롤 정상 + 로딩 오버레이가 완료 시 사라지는지 확인.
+- [ ] **⑰ 시간표 2탭**: 학기시간표 탭 — 실 학기 데이터가 최대 26행×6열 범위에서 행/열 수가 다른 학기(공강 많은 시간표 등)에도 그리드가 깨지지 않는지("26×6 편차" 확인). 모의시간표 탭 — 빈 셀 저장(강의명/강의실 입력) → 채운 셀 수정 → 삭제 왕복 후 앱 재기동해도 `UserDefaults` 값이 유지되는지 확인.
+- [ ] **⑱ 좌석 JSON 실응답**: `GetClickerReadingRooms` 실제 응답의 `_Model_lg_clicker_reading_room_brief_list` 루트 키·필드 6종(`l_id`/`l_room_name`/`l_count`/`l_occupied`/`l_percentage_integer`/`l_open_mode`)이 스펙과 일치해 항목이 스킵 없이 채워지는지, 좌석 상세 탭 진입(`librarySeatDetail(id:)`)이 정상 로드되는지 확인(6.1-5의 유연 디코딩 리스크와 연동).
+- [ ] **⑲ 그룹설정 왕복**: admin 계정으로 Tab4 → 설정 진입 → 모임정보 탭 프리필(이름/설명/가입방식) 로드 → 수정 후 저장(문구 "소모임 변경 완료") → 1.2초 후 자동 pop → **GroupView 타이틀·헤더가 새로고침 없이 즉시 갱신되는지** 확인 → 별도로 이미지 첨부 수정 1회(302 업로드 경로) 실행 후 GroupView 커버 사진이 갱신되는지 확인(아래 6.3의 커버 사진 이중 URL 래핑 의심 항목과 함께 확인 — 이미지가 안 보이면 그 항목부터 의심).
+- [ ] **⑳ 유튜브 왕복**: 게시글 작성 화면에서 검색(한글 쿼리 포함) → 결과 선택 첨부 → 작성 완료 → 소식 목록 셀에 유튜브 썸네일이 이미지보다 우선 노출되는지 → 상세 진입 시 인앱 재생(⑯과 연동) → 해당 게시글 수정 진입 시 첨부가 복원되는지 → 첨부 제거 후 재저장 시 Firebase `Articles/{id}/youtube` 키가 완전히 사라지는지(콘솔 확인) 확인.
+- [ ] **㉑ 기술부채 회귀 3건**: (a) 비앱 그룹 채팅 활성 및 (c) DM REST shallow 실동작/폴백은 §5.3의 "가입 그룹 목록(1차) LMS ID 폴백" 항목과 "DM 목록 REST shallow 하드닝" 항목을 그대로 3차 검증 절차로 사용하세요(중복 작성 생략). (b) **채팅 초기 실패 후 재진입**(신규, §5.3에 없음): 네트워크를 잠시 끊거나 강제로 초기 로드를 실패시킨 뒤(예: 기내 모드로 채팅방 최초 진입) 다시 연결하고 **같은 화면에서 재시도 버튼 없이 그대로 있으면 메시지가 채워지지 않는 것이 정상**입니다(스펙 §7-2 의도 — 재시도 UI 미제공). 화면을 나갔다가 다시 들어가면(재진입) 정상 로드되는지, 그리고 초기 로드 실패 상태에서 메시지를 바로 전송해도 크래시 없이 동작하는지 확인하세요.
+- [ ] **㉒ 에셋**: `yu_library_seat01`(도서관 좌석 화면 헤더 배경)이 실기기에서 깨지거나 늘어나지 않고 렌더링되는지 확인.
+
+### 6.3 3차 스윕에서 재확인된 알려진 제약
+
+- **GroupView 커버 사진 이중 URL 래핑 의심(Task 8 노트, 최종 리뷰 트리아지 대상 — 이 스윕에서 코드 재확인함)**: `GroupView.swift`의 `headerBackground`가 `RemoteImage(urlString: EndPoint.groupImage(file: viewModel.groupItem.image))`로 이미지를 로드합니다. 그런데 `groupItem.image`는 LMS 파싱(`GroupRemoteDataSource.swift`의 그룹 목록/상세 파서, `EndPoint.baseURL + src`)과 3차 `applyGroupUpdate`(설정 이미지 저장 성공 시 `imageURL = EndPoint.groupImage(file: "\(groupId).jpg")`) 양쪽 모두 **이미 완전한 URL 문자열**을 담습니다. 여기에 `headerBackground`가 `EndPoint.groupImage(file:)`(내부적으로 `baseURL + "/ilosfiles/club/photo/" + file`)로 **한 번 더 감싸면**, 완전한 URL이 다른 URL의 경로 조각으로 중첩되어 잘못된 주소가 됩니다(크래시는 아니고 이미지 로드 실패로 커버가 빈 상태로 보일 가능성). 커버 사진이 있는 그룹(1차 §3-②) 및 3차 ⑲의 이미지 업로드 확인 시 커버가 정상 표시되는지 함께 봐주세요 — 만약 항상 깨져 보인다면 이 지점이 원인일 가능성이 높습니다(코드 수정은 이 태스크 범위 밖이라 보류했습니다).
+- **다중 유튜브 임베드 문단 채택 불일치(Task 10/11 기원, minor)**: 게시글 본문에 `youtube-player` 임베드 문단이 2개 이상 있는 경우(정상 작성 경로로는 발생하지 않지만 과거 데이터/수동 편집 시 가능) iOS는 파서가 첫 번째 임베드를 채택하고 Android는 마지막을 채택합니다. 실사용 영향은 낮지만 발견 시 참고하세요.
+- **채팅 초기 로드 실패 시 재시도 버튼이 없는 것은 버그가 아니라 의도된 동작**입니다(스펙 §7-2, 6.2 ㉑ 참고) — 화면 재진입으로 복구됩니다.
+
+이 목록에 없는 세부 사항은 `.superpowers/sdd/2026-08-27-phase3-utils-settings-youtube/progress.md`의 각 태스크 항목에 전부 기록되어 있습니다.
