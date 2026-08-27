@@ -4,8 +4,9 @@
 //
 //  Android app.EndPoint(interface 상수) 대응 — 1차분 전체 미러. {UID}/{FILE} 치환은
 //  URL 문자열 상수 대신 헬퍼 함수(userImage/groupImage)로 대체한다.
-//  2·3차 예정 URL(CREATE_GROUP/REGISTER/MODIFY/UPDATE_GROUP/GROUP_MEMBER_LIST/
-//  GROUP_IMAGE_UPDATE/SEND_MESSAGE/TIMETABLE/영대소식/도서관/버스/유튜브)은 YAGNI로 제외.
+//  2차 Task 1(그룹찾기/가입신청중/그룹생성 데이터층)에서 CREATE_GROUP/REGISTER/GROUP_IMAGE_UPDATE/
+//  NO_PHOTO_IMAGE를 추가했다. 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/GROUP_MEMBER_LIST/
+//  SEND_MESSAGE/TIMETABLE/영대소식/도서관/버스/유튜브)은 여전히 YAGNI로 제외.
 //
 
 enum EndPoint {
@@ -15,6 +16,10 @@ enum EndPoint {
     static let groupList = baseURL + "/ilos/m/community/share_group_list.acl"
     static let withdrawalGroup = baseURL + "/ilos/community/share_auth_drop_me.acl"
     static let deleteGroup = baseURL + "/ilos/community/share_group_delete.acl"
+    static let createGroup = baseURL + "/ilos/community/share_group_insert.acl"
+    static let registerGroup = baseURL + "/ilos/community/share_group_register.acl"
+    static let groupImageUpdate = baseURL + "/ilos/community/share_group_image_update.acl"
+    static let noPhotoImage = baseURL + "/ilos/images/community/share_nophoto.gif"
     static let groupArticleList = baseURL + "/ilos/community/share_list.acl"
     static let writeArticle = baseURL + "/ilos/community/share_insert.acl"
     static let imageUpload = baseURL + "/ilos/tinymce/file_upload_pop.acl"

@@ -34,11 +34,41 @@
 //  1개짜리 배열이 되어 매 anchor가 스킵 → 목록이 통째로 빈 배열로 강등), HtmlUtil.attributeExact를
 //  추가해 onclick만 이걸로 바꿨다. img src 등 기존 attribute(_:in:) 호출부는 그대로 둔다.
 //
+//  2차 Task 1: 그룹찾기(find)/가입신청중(request) 목록 — Android getNotJoinedGroupList/
+//  getJoinRequestGroupList 대응. 두 메소드는 같은 share_group_list.acl 페이지(panel_id=1,
+//  gubun=select_share_total)를 그룹 ID 파싱 방식(find=onclick을 "(),"로 split, request=onclick을
+//  '로 split — Android가 groupIdExtract(String,int) 오버로드 두 종류를 각기 쓰는 것과 동일)만 다르게
+//  써서 조회한다. 파싱은 <a onclick>이 아니라 id="accordion"&&class="accordion" 세그먼트 단위다(그룹
+//  카드 하나 = accordion 블록 하나). HtmlUtil에는 Jericho의 getFirstElementByClass 같은 DOM 스코프
+//  검색이 없어서, description(.menu_list .info[0])과 info 목록(a 하위 .info span)이라는 서로 다른
+//  두 스코프(스펙 §3.2)를 세그먼트 전체의 "모든 class=info 요소, 문서 순서" 하나로 단순화했다(브리프가
+//  "class="info" 요소 내부 텍스트들을 순서대로 수집"이라고 명시 — 브리프가 스펙보다 우선). 이 단순화가
+//  실제 마크업과 어긋나면(예: menu_list 밖에 info가 더 있어 인덱스가 밀리는 경우) description/joinType이
+//  잘못 매핑될 수 있다 — 실마크업 미검증(스펙 §7 위험 1)이라 Mac 인수 시 최우선 확인 대상.
+//
+//  minId/stopRequestMore(Android mMinId/mStopRequestMore 미러)는 인스턴스 필드라 find/request가 같은
+//  GroupRemoteDataSource 인스턴스를 쓰면 상태를 공유한다 — 화면당 ViewModel이 각자 GroupRepository()를
+//  만드는 1차 구조(screenViewModel 인라인, DI 개편 완료분)에서는 FindGroupViewModel과 RequestViewModel이
+//  각자 인스턴스를 가지므로 실제 충돌은 없다. resetGroupPaging()은 Android 결함 3(refresh 시
+//  stopRequestMore 미리셋으로 페이징이 영구 정지되는 버그)을 수정한다 — minId와 함께 반드시 둘 다 리셋한다.
+//
 
 import Foundation
 import FirebaseDatabase
 
 final class GroupRemoteDataSource {
+    // Android mMinId/mStopRequestMore 대응 — find/request 두 목록 조회가 공유하는 페이징 종료 휴리스틱
+    // 상태다(파일 헤더 코멘트 참고). resetGroupPaging()으로만 명시적으로 되돌린다.
+    private var minId = 0
+    private var stopRequestMore = false
+
+    // find(onclick "(),"-split) / request(onclick '-split) — Android groupIdExtract(String,int)의
+    // 두 오버로드 차이를 그대로 미러하기 위한 모드 구분.
+    private enum GroupIdParseMode {
+        case find
+        case request
+    }
+
     // MARK: - 가입한 그룹 목록 (GroupMainView)
 
     func fetchJoinedGroups(offset: Int, completion: @escaping (Resource<[GroupItem]>) -> Void) {
@@ -65,6 +95,76 @@ final class GroupRemoteDataSource {
                 self.mergeFirebaseKeys(into: items, completion: completion)
             }
         }
+    }
+
+    // MARK: - 그룹찾기/가입신청중 목록 (Task 1: 2차 데이터층)
+
+    // Android isStopRequestMore() 대응.
+    var isGroupPagingStopped: Bool {
+        stopRequestMore
+    }
+
+    // Android 결함 3 수정: refresh 시 minId만 리셋하고 stopRequestMore를 남겨두면 이전 호출에서
+    // true가 된 채로 페이징이 영구 정지된다 — 둘 다 반드시 함께 리셋한다.
+    func resetGroupPaging() {
+        minId = 0
+        stopRequestMore = false
+    }
+
+    // Android getNotJoinedGroupList 대응(미가입 그룹, 그룹찾기 화면). 그룹 ID는 find 모드(onclick을
+    // "(),"로 split)로 뽑는다. LMS 파싱 성공 후 Firebase Groups 전체 스캔으로 key를 병합한다(§3.2).
+    func fetchNotJoinedGroups(offset: Int, limit: Int, completion: @escaping (Resource<[GroupItem]>) -> Void) {
+        completion(.loading)
+        requestGroupList(offset: offset, limit: limit) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let html):
+                guard let self = self else {
+                    completion(.success([]))
+                    return
+                }
+                let items = self.parseGroupSegments(from: html, idMode: .find)
+
+                self.mergeFirebaseGroupKeys(into: items, completion: completion)
+            }
+        }
+    }
+
+    // Android getJoinRequestGroupList 대응(가입 대기 그룹, 신청중 화면). 그룹 ID는 request 모드
+    // (onclick을 '로 split)로 뽑는다. Android 결함 1(실 필터링 없이 LMS 전체를 노출)을 수정해
+    // UserGroupList/{uid}에서 value==false인 키와 실제 교차 필터링한 항목만 반환한다(§3.2).
+    func fetchJoinRequestGroups(offset: Int, limit: Int, completion: @escaping (Resource<[GroupItem]>) -> Void) {
+        completion(.loading)
+        requestGroupList(offset: offset, limit: limit) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                completion(.error(error.localizedDescription))
+            case .success(let html):
+                guard let self = self else {
+                    completion(.success([]))
+                    return
+                }
+                let items = self.parseGroupSegments(from: html, idMode: .request)
+
+                self.filterJoinRequestGroups(items, completion: completion)
+            }
+        }
+    }
+
+    // find/request 공통 POST — Android 두 메소드의 getBody()가 동일한 파라미터 집합(panel_id=1,
+    // gubun=select_share_total, start/display/encoding)을 쓴다.
+    private func requestGroupList(offset: Int, limit: Int, completion: @escaping (Result<String, Error>) -> Void) {
+        let cookie = CookieStore.shared.cookieHeader ?? ""
+        let formParams = [
+            "panel_id": "1",
+            "gubun": "select_share_total",
+            "start": String(offset),
+            "display": String(limit),
+            "encoding": "utf-8"
+        ]
+
+        HttpClient.request(EndPoint.groupList, method: "POST", headers: ["Cookie": cookie], formParams: formParams, completion: completion)
     }
 
     // MARK: - 그룹 멤버 목록 (Task 14: Tab3View)
@@ -197,6 +297,75 @@ final class GroupRemoteDataSource {
                 }
             })
         }
+    }
+
+    // MARK: - Firebase 병합/필터 (그룹찾기/가입신청중, Task 1)
+
+    // 그룹찾기(find) 전용 — Android initFirebaseData(List) + fetchGroupListFromFireBase 대응.
+    // 가입한 그룹처럼 "내가 속한 키 목록"이 없으므로, Groups 전체를 한 번에 orderByKey로 조회해
+    // (resolveKeys처럼 key마다 개별 조회하지 않는다 — 대상 후보가 모든 그룹이라 스캔이 더 싸다)
+    // LMS grp_id와 일치하는 항목만 key를 채운다. Firebase 미구성/조회 실패 시 LMS 결과 그대로 성공 처리.
+    private func mergeFirebaseGroupKeys(into items: [GroupItem], completion: @escaping (Resource<[GroupItem]>) -> Void) {
+        guard let root = FirebaseRef.database() else {
+            completion(.success(items))
+            return
+        }
+        var result = items
+
+        root.child("Groups").queryOrderedByKey().observeSingleEvent(of: .value, with: { snapshot in
+            for case let child as DataSnapshot in snapshot.children {
+                if let lmsId = child.childSnapshot(forPath: "id").value as? String,
+                   let index = result.firstIndex(where: { $0.id == lmsId }) {
+                    result[index].key = child.key
+                }
+            }
+            completion(.success(result))
+        }, withCancel: { _ in
+            completion(.success(items))
+        })
+    }
+
+    // 가입신청중(request) 전용 — Android 결함 1 수정: Android는 UserGroupList 매칭 없이 LMS 전체를
+    // 그대로 노출한다(키만 있으면 교체하고 없으면 LMS id 유지). 여기서는 UserGroupList/{uid}에서
+    // value==false(승인 대기)인 키만 뽑아 각 Groups/{key}.id로 LMS 목록과 실제 교차 필터링하고,
+    // 매칭되지 않은 LMS 항목은 결과에서 제외한다. Firebase 미구성/uid 없음 → 빈 목록(신청중 그룹은
+    // Firebase 매칭이 곧 "대기중" 판정의 유일한 근거라 LMS 결과만으로는 답할 수 없다 — §5 참고).
+    private func filterJoinRequestGroups(_ items: [GroupItem], completion: @escaping (Resource<[GroupItem]>) -> Void) {
+        guard let uid = PreferenceManager.shared.user?.uid, let root = FirebaseRef.database() else {
+            completion(.success([]))
+            return
+        }
+        root.child("UserGroupList").child(uid).queryOrderedByValue().queryEqual(toValue: false)
+            .observeSingleEvent(of: .value, with: { snapshot in
+                var keys: [String] = []
+
+                for case let child as DataSnapshot in snapshot.children {
+                    keys.append(child.key)
+                }
+                guard !keys.isEmpty else {
+                    completion(.success([]))
+                    return
+                }
+                var pending: [GroupItem] = []
+                var remaining = keys.count
+                let finish = {
+                    remaining -= 1
+                    if remaining == 0 {
+                        completion(.success(pending.sorted { $0.name < $1.name }))
+                    }
+                }
+
+                for key in keys {
+                    root.child("Groups").child(key).observeSingleEvent(of: .value, with: { groupSnapshot in
+                        if let lmsId = groupSnapshot.childSnapshot(forPath: "id").value as? String,
+                           var item = items.first(where: { $0.id == lmsId }) {
+                            item.key = key
+                            pending.append(item)
+                        }
+                        finish()
+                    }, withCancel: { _ in finish() })
+                }
+            }, withCancel: { _ in completion(.success([])) })
     }
 
     // MARK: - Firebase 정리 (탈퇴/삭제)
@@ -340,6 +509,168 @@ final class GroupRemoteDataSource {
             return nil
         }
         return String(html[range])
+    }
+
+    // MARK: - 그룹찾기/가입신청중 HTML 파싱 (Android getNotJoinedGroupList/getJoinRequestGroupList 대응)
+
+    // id="accordion"을 가진 여는 태그 전부를 찾아 각 매치 시작~다음 매치 시작(마지막은 문서 끝)을
+    // 세그먼트로 자른다(그룹 카드 하나 = accordion 블록 하나). 이 메소드는 minId/stopRequestMore를
+    // 갱신하므로 인스턴스 메소드다 — Android가 for-break로 루프를 끝내는 것과 동일하게, 순서를 벗어난
+    // id를 만나면 그 항목은 버리고 나머지 세그먼트는 처리하지 않는다(break 미러).
+    private func parseGroupSegments(from html: String, idMode: GroupIdParseMode) -> [GroupItem] {
+        guard let openRegex = try? NSRegularExpression(
+            pattern: "<[a-zA-Z0-9]+\\b[^>]*\\bid=[\"']accordion[\"'][^>]*>",
+            options: [.caseInsensitive]
+        ) else {
+            return []
+        }
+        let matches = openRegex.matches(in: html, range: NSRange(html.startIndex..., in: html))
+        var items: [GroupItem] = []
+
+        for (index, match) in matches.enumerated() {
+            guard let openRange = Range(match.range, in: html) else {
+                continue
+            }
+            let openTag = String(html[openRange])
+
+            // Android element.getAttributeValue("class").equals("accordion") 미러 — class가
+            // 정확히 "accordion"인 세그먼트만 처리한다(다른 클래스가 섞여 있으면 건너뛴다).
+            guard HtmlUtil.attribute("class", in: openTag) == "accordion" else {
+                continue
+            }
+            let segmentEnd: String.Index
+            if index + 1 < matches.count, let nextRange = Range(matches[index + 1].range, in: html) {
+                segmentEnd = nextRange.lowerBound
+            } else {
+                segmentEnd = html.endIndex
+            }
+            let segment = String(html[openRange.lowerBound..<segmentEnd])
+
+            guard let item = GroupRemoteDataSource.parseGroupSegment(segment, idMode: idMode),
+                  let idValue = Int(item.id) else {
+                continue
+            }
+            minId = (minId == 0) ? idValue : min(minId, idValue)
+            if idValue > minId {
+                stopRequestMore = true
+                break
+            }
+            stopRequestMore = false
+            items.append(item)
+        }
+        return items
+    }
+
+    // 세그먼트 하나(accordion 블록)를 GroupItem으로 변환. 그룹 ID는 idMode에 따라 onclick을
+    // 다르게 split한다(파일 헤더 코멘트 참고) — Int 변환 실패 또는 인덱스 부족 시 nil을 돌려줘
+    // parseGroupSegments가 해당 세그먼트만 건너뛰게 한다(parseAnchor와 동일한 원칙).
+    private static func parseGroupSegment(_ segment: String, idMode: GroupIdParseMode) -> GroupItem? {
+        guard let buttonTag = GroupRemoteDataSource.allTags(withAttribute: "class", equalTo: "button", in: segment).first,
+              let onclick = HtmlUtil.attributeExact("onclick", in: buttonTag) else {
+            return nil
+        }
+        let rawId: String
+
+        switch idMode {
+        case .find:
+            // Android groupIdExtract(onclick): onclick.split("[(]|[)]|[,]")[1].trim()
+            let parts = onclick.components(separatedBy: CharacterSet(charactersIn: "(),"))
+
+            guard parts.count > 1 else {
+                return nil
+            }
+            rawId = parts[1].trimmingCharacters(in: .whitespaces)
+        case .request:
+            // Android groupIdExtract(onclick, 1): onclick.split("'")[1].trim()
+            let parts = onclick.components(separatedBy: "'")
+
+            guard parts.count > 1 else {
+                return nil
+            }
+            rawId = parts[1].trimmingCharacters(in: .whitespaces)
+        }
+        guard let idValue = Int(rawId) else {
+            return nil
+        }
+        guard let imgTag = GroupRemoteDataSource.firstMatch(pattern: "<img\\b[^>]*>", in: segment),
+              let rawSrc = HtmlUtil.attribute("src", in: imgTag) else {
+            return nil
+        }
+        let src = HtmlUtil.text(rawSrc)
+
+        guard let strongInner = GroupRemoteDataSource.firstCapturedGroup(pattern: "<strong\\b[^>]*>(.*?)</strong>", in: segment) else {
+            return nil
+        }
+        let name = HtmlUtil.text(strongInner)
+
+        // 브리프가 스펙 §3.2의 두 스코프(.menu_list .info / a 하위 .info)를 "class=info 요소 내부
+        // 텍스트들을 순서대로 수집" 하나로 단순화했다 — infoTexts(in:) 코멘트 참고.
+        let infoTexts = GroupRemoteDataSource.infoTexts(in: segment)
+
+        guard infoTexts.count > 1 else {
+            return nil
+        }
+        let description = infoTexts[0]
+        let joinTypeText = infoTexts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+        let joinType = joinTypeText == "가입방식: 자동 승인" ? "0" : "1"
+        var info = ""
+
+        for text in infoTexts {
+            if text.contains("회원수"), let range = text.range(of: "생성일", options: .backwards) {
+                info += String(text[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines) + "\n"
+            } else {
+                info += text + "\n"
+            }
+        }
+
+        return GroupItem(
+            id: String(idValue),
+            key: nil,
+            name: name,
+            image: EndPoint.baseURL + src,
+            info: info.trimmingCharacters(in: .whitespacesAndNewlines),
+            description_: description,
+            joinType: joinType,
+            isAdmin: false,
+            author: nil,
+            authorUid: nil,
+            memberCount: 0,
+            timestamp: nil,
+            members: nil
+        )
+    }
+
+    // class="info" 요소들의 텍스트를 문서 순서대로 반환. Android는 description/joinType을
+    // menuList.getAllElementsByClass("info")에서, info 목록은 element.getFirstElement(A)
+    // .getAllElementsByClass("info")에서 따로 얻는다(서로 다른 DOM 스코프, 스펙 §3.2) — HtmlUtil에는
+    // Jericho의 getFirstElementByClass 같은 스코프 검색이 없어서 "세그먼트 내 모든 class=info 요소,
+    // 문서 순서"로 단순화했다(브리프 Step 3가 명시한 처리 — 브리프가 스펙보다 우선). elementById와
+    // 같은 한계로 태그가 중첩되면 닫는 태그 짝이 정확하지 않을 수 있다.
+    private static func infoTexts(in segment: String) -> [String] {
+        let pattern = "<([a-zA-Z0-9]+)\\b[^>]*\\bclass=[\"']info[\"'][^>]*>"
+
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return []
+        }
+        let matches = regex.matches(in: segment, range: NSRange(segment.startIndex..., in: segment))
+        var texts: [String] = []
+
+        for match in matches {
+            guard let tagNameRange = Range(match.range(at: 1), in: segment),
+                  let openRange = Range(match.range, in: segment) else {
+                continue
+            }
+            let tagName = String(segment[tagNameRange])
+            let closeTag = "</\(tagName)>"
+
+            guard let closeRange = segment.range(of: closeTag,
+                                                  options: [.caseInsensitive],
+                                                  range: openRange.upperBound..<segment.endIndex) else {
+                continue
+            }
+            texts.append(HtmlUtil.text(String(segment[openRange.upperBound..<closeRange.lowerBound])))
+        }
+        return texts
     }
 
     // MARK: - 멤버 목록 HTML 파싱 (Android Tab3ViewModel.fetchMemberList try 블록 대응)
