@@ -90,6 +90,9 @@
 		YU0000000000000000000165 /* RequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000164 /* RequestView.swift */; };
 		YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000166 /* CreateGroupViewModel.swift */; };
 		YU0000000000000000000169 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000168 /* CreateGroupView.swift */; };
+		YU0000000000000000000171 /* MessageItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000170 /* MessageItem.swift */; };
+		YU0000000000000000000173 /* ChatRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000172 /* ChatRemoteDataSource.swift */; };
+		YU0000000000000000000175 /* ChatRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000174 /* ChatRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -175,6 +178,9 @@
 		YU0000000000000000000164 /* RequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000166 /* CreateGroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000168 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000170 /* MessageItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000172 /* ChatRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000174 /* ChatRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRepository.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,6 +244,7 @@
 				YU0000000000000000000081 /* GroupRemoteDataSource.swift */,
 				YU0000000000000000000093 /* ArticleRemoteDataSource.swift */,
 				YU0000000000000000000122 /* ReplyRemoteDataSource.swift */,
+				YU0000000000000000000172 /* ChatRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -250,6 +257,7 @@
 				YU0000000000000000000083 /* GroupRepository.swift */,
 				YU0000000000000000000095 /* ArticleRepository.swift */,
 				YU0000000000000000000124 /* ReplyRepository.swift */,
+				YU0000000000000000000174 /* ChatRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -349,6 +357,7 @@
 				YU0000000000000000000046 /* ArticleItem.swift */,
 				YU0000000000000000000048 /* ReplyItem.swift */,
 				YU0000000000000000000050 /* MemberItem.swift */,
+				YU0000000000000000000170 /* MessageItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -530,6 +539,9 @@
 				YU0000000000000000000165 /* RequestView.swift in Sources */,
 				YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */,
 				YU0000000000000000000169 /* CreateGroupView.swift in Sources */,
+				YU0000000000000000000171 /* MessageItem.swift in Sources */,
+				YU0000000000000000000173 /* ChatRemoteDataSource.swift in Sources */,
+				YU0000000000000000000175 /* ChatRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
