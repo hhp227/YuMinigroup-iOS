@@ -38,6 +38,16 @@ final class GroupRepository {
         remote.fetchMembers(groupId: groupId, offset: offset, completion: completion)
     }
 
+    // Task 2(2차): 가입신청(GroupInfoDialogView, TYPE_REQUEST).
+    func registerGroup(groupId: String, key: String?, joinType: String, fallback: GroupItem?, completion: @escaping (Resource<Bool>) -> Void) {
+        remote.registerGroup(groupId: groupId, key: key, joinType: joinType, fallback: fallback, completion: completion)
+    }
+
+    // Task 2(2차): 신청취소(GroupInfoDialogView, TYPE_CANCEL).
+    func cancelJoinRequest(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
+        remote.cancelJoinRequest(groupId: groupId, key: key, completion: completion)
+    }
+
     func leaveGroup(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
         remote.leaveGroup(groupId: groupId, key: key, completion: completion)
     }

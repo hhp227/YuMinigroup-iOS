@@ -199,6 +199,55 @@ final class GroupRemoteDataSource {
         }
     }
 
+    // MARK: - 가입신청/신청취소 (Task 2: 2차 데이터층, GroupInfoDialogView)
+
+    // Android GroupInfoViewModel.sendRequest(TYPE_REQUEST) + insertGroupToFirebase 대응. LMS는
+    // performRemoval을 그대로 재사용한다(POST CLUB_GRP_ID 1개 + JSON isError 판정 — leaveGroup/
+    // deleteGroup과 동일 패턴). LMS 성공 후 key/uid가 모두 있을 때만 Firebase를 갱신한다(key==nil,
+    // 즉 Firebase 미등록/미구성이면 LMS 성공만 반영하고 갱신을 생략 — 브리프 Step 4).
+    // Android 결함 4(이미 멤버면 members map을 새로 비우는 버그)는 이식하지 않는다: 아래
+    // runMembershipTransaction은 트랜잭션이 읽어온 현재 members 맵을 그대로 두고 uid 한 키만
+    // upsert한다(map 전체를 새로 만들지 않는다).
+    func registerGroup(groupId: String,
+                        key: String?,
+                        joinType: String,
+                        fallback: GroupItem?,
+                        completion: @escaping (Resource<Bool>) -> Void) {
+        performRemoval(endpoint: EndPoint.registerGroup, groupId: groupId, completion: completion) { [weak self] in
+            guard let self = self,
+                  let key = key,
+                  let uid = PreferenceManager.shared.user?.uid,
+                  let root = FirebaseRef.database() else {
+                return
+            }
+            // "0"(자동 승인) → true(즉시 정식 가입), "1"(운영자 승인) → false(승인 대기) — 스펙 §3.3.
+            let isApproved = joinType == "0"
+
+            self.runMembershipTransaction(key: key, fallback: fallback, joinType: joinType) { members in
+                members[uid] = isApproved
+            }
+            root.child("UserGroupList").child(uid).child(key).setValue(isApproved)
+        }
+    }
+
+    // Android GroupInfoViewModel.sendRequest(TYPE_CANCEL) + deleteUserInGroupFromFirebase 대응.
+    // fallback 노드 생성은 신청 취소에는 의미가 없으므로(취소할 신청 자체가 없는 상태) fallback/joinType
+    // 모두 nil로 트랜잭션을 호출한다 — Groups/{key}가 없으면 아무것도 만들지 않고 넘어간다.
+    func cancelJoinRequest(groupId: String, key: String?, completion: @escaping (Resource<Bool>) -> Void) {
+        performRemoval(endpoint: EndPoint.withdrawalGroup, groupId: groupId, completion: completion) { [weak self] in
+            guard let self = self,
+                  let key = key,
+                  let uid = PreferenceManager.shared.user?.uid,
+                  let root = FirebaseRef.database() else {
+                return
+            }
+            self.runMembershipTransaction(key: key, fallback: nil, joinType: nil) { members in
+                members.removeValue(forKey: uid)
+            }
+            root.child("UserGroupList").child(uid).child(key).removeValue()
+        }
+    }
+
     // MARK: - 탈퇴/삭제 (Task 15에서 사용)
 
     // Android removeGroup(isAdmin=false) 대응. key는 Android 원본과 동일하게 Firebase Groups 노드 정리에
@@ -416,6 +465,53 @@ final class GroupRemoteDataSource {
             articlesRef.child(key).removeValue()
             groupsRef.child(key).removeValue()
         })
+    }
+
+    // MARK: - Firebase 트랜잭션 (가입신청/신청취소, 개선 3)
+
+    // Android insertGroupToFirebase/deleteUserInGroupFromFirebase는 addListenerForSingleValueEvent로
+    // Groups/{key} 전체를 읽어 setValue로 통째 덮어쓴다 — 동시에 두 사용자가 가입/탈퇴하면 나중에 쓴
+    // 쪽이 먼저 쓴 쪽의 members 변경을 지운다(레이스). 이 포팅은 개선 3(합의됨)에 따라 통째 setValue
+    // 대신 runTransactionBlock으로 members/memberCount만 원자적으로 갱신한다.
+    //
+    // fallback은 Groups/{key} 노드가 아직 없을 때(비앱 생성 그룹 — 결함 6)만 쓰인다: 목록 화면이
+    // 이미 들고 있던 GroupItem(다이얼로그 인자)으로 최소 노드를 새로 만든다. joinType은 register가
+    // 넘긴 값을 우선하고, 없으면(취소 흐름 등) fallback.joinType, 그것도 없으면 "1"(승인 필요)로
+    // 보수적으로 강등한다 — Task 1 이연 사항: menu_list 스코프를 못 찾으면 fallback.joinType이 nil일
+    // 수 있어 여기서 한 번 더 방어한다.
+    private func runMembershipTransaction(key: String,
+                                           fallback: GroupItem?,
+                                           joinType: String?,
+                                           mutate: @escaping (inout [String: Bool]) -> Void) {
+        guard let root = FirebaseRef.database() else {
+            return
+        }
+        root.child("Groups").child(key).runTransactionBlock { currentData in
+            if var group = currentData.value as? [String: Any] {
+                var members = (group["members"] as? [String: Any])?
+                    .compactMapValues { ($0 as? Bool) ?? ($0 as? NSNumber)?.boolValue } ?? [:]
+                mutate(&members)
+                group["members"] = members
+                group["memberCount"] = members.count
+                currentData.value = group
+            } else if let fallback = fallback {
+                // 비앱 생성 그룹(Firebase 미등록) — 최소 노드 생성(스펙 §2 결함 6 수정)
+                var members: [String: Bool] = [:]
+                mutate(&members)
+                currentData.value = [
+                    "admin": false,
+                    "id": fallback.id,
+                    "timestamp": Int64(Date().timeIntervalSince1970 * 1000),
+                    "image": fallback.image,
+                    "name": fallback.name,
+                    "description": fallback.description_ ?? "",
+                    "joinType": joinType ?? fallback.joinType ?? "1",
+                    "members": members,
+                    "memberCount": members.count
+                ] as [String: Any]
+            }
+            return TransactionResult.success(withValue: currentData)
+        }
     }
 
     // MARK: - HTML 파싱
