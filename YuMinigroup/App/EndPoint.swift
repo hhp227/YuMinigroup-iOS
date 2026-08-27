@@ -11,6 +11,8 @@
 //  추가한다 — 이 리포는 헬퍼 함수 관례(userImage/groupImage)를 따르므로 치환 상수 하나 대신
 //  용도별 상수/함수로 쪼갠다. 나머지 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/
 //  GROUP_MEMBER_LIST/SEND_MESSAGE/TIMETABLE/도서관/유튜브)은 여전히 YAGNI로 제외.
+//  3차 Task 3(도서관 좌석)에서 Android URL_YU_LIBRARY_SEAT_ROOMS/URL_YU_LIBRARY_SEAT_DETAIL({ID}
+//  치환형)을 librarySeatRooms(목록) + librarySeatDetail(id:)(상세, 헬퍼 함수 관례) 두 개로 추가한다.
 //
 
 enum EndPoint {
@@ -41,6 +43,7 @@ enum EndPoint {
     static let schedule = "https://homep.yu.ac.kr/_app/calendarxml_u.php"
     static let shuttleBus = "https://hcms.yu.ac.kr/main/life/information-on-the-school-bus.do"
     static let yuNoticeList = "https://www.yu.ac.kr/main/intro/yu-news.do?mode=list"
+    static let librarySeatRooms = "https://slib.yu.ac.kr/Clicker/GetClickerReadingRooms"
 
     static func userImage(uid: String) -> String {
         baseURL + "/ilos/mp/user_image_view.acl?id=\(uid)&ext=.jpg"
@@ -50,5 +53,8 @@ enum EndPoint {
     }
     static func yuNoticeView(articleNo: String) -> String {
         "https://www.yu.ac.kr/main/intro/yu-news.do?mode=view&articleNo=\(articleNo)"
+    }
+    static func librarySeatDetail(id: String) -> String {
+        "https://slib.yu.ac.kr/clicker/UserSeat/\(id)"
     }
 }

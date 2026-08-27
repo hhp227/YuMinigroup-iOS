@@ -26,6 +26,9 @@
 //  Task 2(3차): univNotice 라우트를 UnivNoticeView로 교체한다(스펙 §4.1). 나머지(시간표/도서관 좌석)는
 //  3차 후속 태스크가 교체하기 전까지 여전히 PlaceholderView다.
 //
+//  Task 3(3차): librarySeat 라우트를 SeatView로 교체한다(스펙 §4.3). 나머지(시간표)는 3차 후속 태스크가
+//  교체하기 전까지 여전히 PlaceholderView다.
+//
 
 import SwiftUI
 
@@ -105,8 +108,9 @@ struct MainView: View {
 }
 
 // groupMain은 GroupMainView(Task 10)로, chatList는 ChatListView(2차 Task 10)로, shuttleBus는
-// WebViewScreen(3차 Task 1)로, univNotice는 UnivNoticeView(3차 Task 2)로 라우팅한다. 나머지(시간표/
-// 도서관 좌석)는 아직 PlaceholderView로 라우팅한다(3차 후속 태스크가 교체 예정).
+// WebViewScreen(3차 Task 1)로, univNotice는 UnivNoticeView(3차 Task 2)로, librarySeat는
+// SeatView(3차 Task 3)로 라우팅한다. 나머지(시간표)는 아직 PlaceholderView로 라우팅한다(3차 후속
+// 태스크가 교체 예정).
 private struct MainContentRouter: View {
     let route: MainRoute
     let onMenuClick: () -> Void
@@ -119,6 +123,8 @@ private struct MainContentRouter: View {
             ChatListView(onMenuClick: onMenuClick)
         case .univNotice:
             UnivNoticeView(onMenuClick: onMenuClick)
+        case .librarySeat:
+            SeatView(onMenuClick: onMenuClick)
         case .shuttleBus:
             WebViewScreen(urlString: EndPoint.shuttleBus, title: "순환버스 시간표", onMenuClick: onMenuClick)
         default:

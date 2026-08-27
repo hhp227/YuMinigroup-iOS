@@ -104,6 +104,11 @@
 		YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000192 /* UnivNoticeRepository.swift */; };
 		YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000194 /* UnivNoticeViewModel.swift */; };
 		YU0000000000000000000197 /* UnivNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000196 /* UnivNoticeView.swift */; };
+		YU0000000000000000000199 /* SeatItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000198 /* SeatItem.swift */; };
+		YU0000000000000000000201 /* SeatRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000200 /* SeatRemoteDataSource.swift */; };
+		YU0000000000000000000203 /* SeatRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000202 /* SeatRepository.swift */; };
+		YU0000000000000000000205 /* SeatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000204 /* SeatViewModel.swift */; };
+		YU0000000000000000000207 /* SeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000206 /* SeatView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -203,6 +208,11 @@
 		YU0000000000000000000192 /* UnivNoticeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000194 /* UnivNoticeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000196 /* UnivNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000198 /* SeatItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000200 /* SeatRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000202 /* SeatRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000204 /* SeatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000206 /* SeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -268,6 +278,7 @@
 				YU0000000000000000000122 /* ReplyRemoteDataSource.swift */,
 				YU0000000000000000000172 /* ChatRemoteDataSource.swift */,
 				YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */,
+				YU0000000000000000000200 /* SeatRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -282,6 +293,7 @@
 				YU0000000000000000000124 /* ReplyRepository.swift */,
 				YU0000000000000000000174 /* ChatRepository.swift */,
 				YU0000000000000000000192 /* UnivNoticeRepository.swift */,
+				YU0000000000000000000202 /* SeatRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -325,6 +337,7 @@
 				YU0000000000000000000184 /* ChatListView.swift */,
 				YU0000000000000000000186 /* WebViewScreen.swift */,
 				YU0000000000000000000196 /* UnivNoticeView.swift */,
+				YU0000000000000000000206 /* SeatView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -364,6 +377,7 @@
 				YU0000000000000000000176 /* ChatViewModel.swift */,
 				YU0000000000000000000182 /* ChatListViewModel.swift */,
 				YU0000000000000000000194 /* UnivNoticeViewModel.swift */,
+				YU0000000000000000000204 /* SeatViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -391,6 +405,7 @@
 				YU0000000000000000000050 /* MemberItem.swift */,
 				YU0000000000000000000170 /* MessageItem.swift */,
 				YU0000000000000000000188 /* BbsItem.swift */,
+				YU0000000000000000000198 /* SeatItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -586,6 +601,11 @@
 				YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */,
 				YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */,
 				YU0000000000000000000197 /* UnivNoticeView.swift in Sources */,
+				YU0000000000000000000199 /* SeatItem.swift in Sources */,
+				YU0000000000000000000201 /* SeatRemoteDataSource.swift in Sources */,
+				YU0000000000000000000203 /* SeatRepository.swift in Sources */,
+				YU0000000000000000000205 /* SeatViewModel.swift in Sources */,
+				YU0000000000000000000207 /* SeatView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
