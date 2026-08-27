@@ -183,8 +183,9 @@ final class ChatViewModel: ObservableObject {
                 // 처리하면 messages가 비어 있어(fetch 실패로 아무것도 안 들어옴) afterKey가 nil이
                 // 되고, ChatRemoteDataSource가 필터 없는 bare reference로 childAdded를 붙여 대화방
                 // 전체 이력이 한 번에 재생되는 문제(위 헤더 코멘트 §3.5)가 실패 케이스에서도 그대로
-                // 발생한다. 실패는 관찰을 보류해 재시도(fetchPreviousPage 등)나 재진입으로 다시 초기
-                // 로드가 성공할 때까지 기다린다 — 실패 토스트(아래 .failure 분기)는 그대로 유지.
+                // 발생한다. 초기 로드 실패 시 cursor가 nil이라 fetchPreviousPage()는 가드(:101)에 막혀
+                // 무력하다 — 실질적 회복 수단은 재진입(화면 재생성)으로 초기 로드가 다시 성공하는
+                // 경우뿐이며, 그때까지 관찰은 보류한다. 실패 토스트(아래 .failure 분기)는 그대로 유지.
                 if isInitialLoad {
                     self.isInitialLoadComplete = true
                     self.attachObserverIfNeeded()

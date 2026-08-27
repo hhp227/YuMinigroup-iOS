@@ -19,7 +19,7 @@ struct ArticleItem: Codable, Identifiable, Hashable {
     var key: String?          // Firebase key
     var uid, name, title, content: String
     var images: [String]
-    var youtubeId: String?    // 1차: 썸네일 표시+외부 열기 전용
+    var youtubeId: String?    // 목록: 썸네일 표시, 상세: 인앱 WKWebView 재생(youtubePosition 위치에 삽입)
     var youtubePosition: Int? // 상세 삽입 위치(앞선 이미지 개수) — 목록은 미사용
     var replyCount: Int
     var timestamp: Date?

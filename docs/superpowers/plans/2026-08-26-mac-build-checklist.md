@@ -113,8 +113,11 @@
 
 ### 6.3 3차 스윕에서 재확인된 알려진 제약
 
-- **GroupView 커버 사진 이중 URL 래핑 의심(Task 8 노트, 최종 리뷰 트리아지 대상 — 이 스윕에서 코드 재확인함)**: `GroupView.swift`의 `headerBackground`가 `RemoteImage(urlString: EndPoint.groupImage(file: viewModel.groupItem.image))`로 이미지를 로드합니다. 그런데 `groupItem.image`는 LMS 파싱(`GroupRemoteDataSource.swift`의 그룹 목록/상세 파서, `EndPoint.baseURL + src`)과 3차 `applyGroupUpdate`(설정 이미지 저장 성공 시 `imageURL = EndPoint.groupImage(file: "\(groupId).jpg")`) 양쪽 모두 **이미 완전한 URL 문자열**을 담습니다. 여기에 `headerBackground`가 `EndPoint.groupImage(file:)`(내부적으로 `baseURL + "/ilosfiles/club/photo/" + file`)로 **한 번 더 감싸면**, 완전한 URL이 다른 URL의 경로 조각으로 중첩되어 잘못된 주소가 됩니다(크래시는 아니고 이미지 로드 실패로 커버가 빈 상태로 보일 가능성). 커버 사진이 있는 그룹(1차 §3-②) 및 3차 ⑲의 이미지 업로드 확인 시 커버가 정상 표시되는지 함께 봐주세요 — 만약 항상 깨져 보인다면 이 지점이 원인일 가능성이 높습니다(코드 수정은 이 태스크 범위 밖이라 보류했습니다).
+- **GroupView 커버 사진 이중 URL 래핑 — 수정됨(GroupView:236)**: `headerBackground`가 `RemoteImage(urlString: EndPoint.groupImage(file: viewModel.groupItem.image))`로 완전한 URL을 한 번 더 감싸던 문제를 `RemoteImage(urlString: viewModel.groupItem.image)`로 수정했습니다(`GroupMainView`/`GroupInfoDialogView`가 이미 쓰던 패턴과 통일). 인수 시 별도 확인 불필요 — 6.2 ⑲의 커버 갱신 확인만 그대로 진행하면 됩니다.
 - **다중 유튜브 임베드 문단 채택 불일치(Task 10/11 기원, minor)**: 게시글 본문에 `youtube-player` 임베드 문단이 2개 이상 있는 경우(정상 작성 경로로는 발생하지 않지만 과거 데이터/수동 편집 시 가능) iOS는 파서가 첫 번째 임베드를 채택하고 Android는 마지막을 채택합니다. 실사용 영향은 낮지만 발견 시 참고하세요.
 - **채팅 초기 로드 실패 시 재시도 버튼이 없는 것은 버그가 아니라 의도된 동작**입니다(스펙 §7-2, 6.2 ㉑ 참고) — 화면 재진입으로 복구됩니다.
+- **후속 백로그(최종 리뷰에서 신규 발견, 이 스윕 범위 밖)**:
+  1. `RemoteImage`(`RemoteImage.swift:54`)가 요청 대상 호스트를 가리지 않고 모든 URL에 `CookieStore.shared.cookieHeader`(LMS 세션 쿠키)를 부착합니다. 지금은 실제로 LMS/그룹 이미지 호스트만 로드하므로 당장 문제는 없지만, 향후 다른 호스트 이미지를 붙이면 LMS 세션 쿠키가 의도치 않게 새어 나갈 수 있습니다 — `lms.yu.ac.kr`일 때만 부착하는 allowlist를 후속 과제로 남깁니다.
+  2. 게시글 수정 경로에서 유튜브 embed 위치가 보존되지 않습니다. `buildContentHtml`(`ArticleRemoteDataSource.swift:386`)이 유튜브 문단을 항상 이미지 문단들 뒤에 배치하는 반면, Android는 `contentList`의 원래 순서를 그대로 보존합니다. 영상이 이미지보다 앞에 있던 글을 iOS에서 수정·저장하면 영상이 본문 끝으로 밀려납니다 — 순서 보존 방식은 플랜 레벨 결정이 필요해 이번 스윕 범위 밖으로 남겨둡니다.
 
 이 목록에 없는 세부 사항은 `.superpowers/sdd/2026-08-27-phase3-utils-settings-youtube/progress.md`의 각 태스크 항목에 전부 기록되어 있습니다.

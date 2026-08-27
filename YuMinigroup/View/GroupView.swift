@@ -233,7 +233,7 @@ struct GroupView: View {
     private var headerBackground: some View {
         if viewModel.hasCoverPhoto {
             ZStack(alignment: .bottom) {
-                RemoteImage(urlString: EndPoint.groupImage(file: viewModel.groupItem.image))
+                RemoteImage(urlString: viewModel.groupItem.image)
                     .aspectRatio(contentMode: .fill)
                     .clipped()
 
