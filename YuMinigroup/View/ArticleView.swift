@@ -85,9 +85,9 @@ struct ArticleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toast(message: $viewModel.state.message)
         .toolbar {
-            // Android onCreateOptionsMenu의 mIsAuthorized 분기 — 본인 글일 때만 수정/삭제 메뉴를 보인다.
-            if viewModel.isOwner {
-                ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                // Android onCreateOptionsMenu의 mIsAuthorized 분기 — 본인 글일 때만 수정/삭제 메뉴를 보인다.
+                if viewModel.isOwner {
                     Menu {
                         Button("수정") {
                             fullScreen = .edit
