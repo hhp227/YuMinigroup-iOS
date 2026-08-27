@@ -40,12 +40,12 @@ final class ArticleRepository {
         remote.fetchArticle(articleId: articleId, completion: completion)
     }
 
-    func addArticle(title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
-        remote.addArticle(title: title, content: content, imageUrls: imageUrls, completion: completion)
+    func addArticle(title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
+        remote.addArticle(title: title, content: content, imageUrls: imageUrls, youtube: youtube, completion: completion)
     }
 
-    func setArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
-        remote.setArticle(articleId: articleId, key: key, title: title, content: content, imageUrls: imageUrls, completion: completion)
+    func setArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
+        remote.setArticle(articleId: articleId, key: key, title: title, content: content, imageUrls: imageUrls, youtube: youtube, completion: completion)
     }
 
     func uploadImage(_ image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
