@@ -6,8 +6,11 @@
 //  URL 문자열 상수 대신 헬퍼 함수(userImage/groupImage)로 대체한다.
 //  2차 Task 1(그룹찾기/가입신청중/그룹생성 데이터층)에서 CREATE_GROUP/REGISTER/GROUP_IMAGE_UPDATE/
 //  NO_PHOTO_IMAGE를 추가했다. 3차 Task 1(WebViewScreen 공통 컴포넌트)에서 URL_YU_SHUTTLE_BUS를
-//  shuttleBus로 추가했다. 나머지 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/GROUP_MEMBER_LIST/
-//  SEND_MESSAGE/TIMETABLE/영대소식/도서관/유튜브)은 여전히 YAGNI로 제외.
+//  shuttleBus로 추가했다. 3차 Task 2(영대소식)에서 Android URL_YU_NOTICE({MODE} 치환형)를
+//  yuNoticeList(목록, mode=list 고정) + yuNoticeView(articleNo:)(상세, mode=view) 두 개로 나눠
+//  추가한다 — 이 리포는 헬퍼 함수 관례(userImage/groupImage)를 따르므로 치환 상수 하나 대신
+//  용도별 상수/함수로 쪼갠다. 나머지 3차 이연 또는 영구 제외 예정 URL(MODIFY/UPDATE_GROUP/
+//  GROUP_MEMBER_LIST/SEND_MESSAGE/TIMETABLE/도서관/유튜브)은 여전히 YAGNI로 제외.
 //
 
 enum EndPoint {
@@ -37,11 +40,15 @@ enum EndPoint {
     static let profileImageUpdate = baseURL + "/ilos/mp/myinfo_insert.acl"
     static let schedule = "https://homep.yu.ac.kr/_app/calendarxml_u.php"
     static let shuttleBus = "https://hcms.yu.ac.kr/main/life/information-on-the-school-bus.do"
+    static let yuNoticeList = "https://www.yu.ac.kr/main/intro/yu-news.do?mode=list"
 
     static func userImage(uid: String) -> String {
         baseURL + "/ilos/mp/user_image_view.acl?id=\(uid)&ext=.jpg"
     }
     static func groupImage(file: String) -> String {
         baseURL + "/ilosfiles/club/photo/\(file)"
+    }
+    static func yuNoticeView(articleNo: String) -> String {
+        "https://www.yu.ac.kr/main/intro/yu-news.do?mode=view&articleNo=\(articleNo)"
     }
 }

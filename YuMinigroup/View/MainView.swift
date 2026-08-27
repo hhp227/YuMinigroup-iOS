@@ -21,8 +21,10 @@
 //  (Android 드로어에는 없는 신설 메뉴 — 스펙 §4.5). 위 1차 Task 10과 번호가 같지만 별개 태스크다.
 //
 //  Task 1(3차): shuttleBus 라우트를 WebViewScreen(EndPoint.shuttleBus, 드로어 루트 모드)으로 교체한다
-//  (스펙 §4.4) — VM 없이 URL/타이틀만 넘긴다. 나머지(영대소식/시간표/도서관 좌석)는 3차 후속 태스크가
-//  교체하기 전까지 여전히 PlaceholderView다.
+//  (스펙 §4.4) — VM 없이 URL/타이틀만 넘긴다.
+//
+//  Task 2(3차): univNotice 라우트를 UnivNoticeView로 교체한다(스펙 §4.1). 나머지(시간표/도서관 좌석)는
+//  3차 후속 태스크가 교체하기 전까지 여전히 PlaceholderView다.
 //
 
 import SwiftUI
@@ -103,8 +105,8 @@ struct MainView: View {
 }
 
 // groupMain은 GroupMainView(Task 10)로, chatList는 ChatListView(2차 Task 10)로, shuttleBus는
-// WebViewScreen(3차 Task 1)로 라우팅한다. 나머지(영대소식/시간표/도서관 좌석)는 아직 PlaceholderView로
-// 라우팅한다(3차 후속 태스크가 교체 예정).
+// WebViewScreen(3차 Task 1)로, univNotice는 UnivNoticeView(3차 Task 2)로 라우팅한다. 나머지(시간표/
+// 도서관 좌석)는 아직 PlaceholderView로 라우팅한다(3차 후속 태스크가 교체 예정).
 private struct MainContentRouter: View {
     let route: MainRoute
     let onMenuClick: () -> Void
@@ -115,6 +117,8 @@ private struct MainContentRouter: View {
             GroupMainView(onMenuClick: onMenuClick)
         case .chatList:
             ChatListView(onMenuClick: onMenuClick)
+        case .univNotice:
+            UnivNoticeView(onMenuClick: onMenuClick)
         case .shuttleBus:
             WebViewScreen(urlString: EndPoint.shuttleBus, title: "순환버스 시간표", onMenuClick: onMenuClick)
         default:

@@ -99,6 +99,11 @@
 		YU0000000000000000000183 /* ChatListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000182 /* ChatListViewModel.swift */; };
 		YU0000000000000000000185 /* ChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000184 /* ChatListView.swift */; };
 		YU0000000000000000000187 /* WebViewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000186 /* WebViewScreen.swift */; };
+		YU0000000000000000000189 /* BbsItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000188 /* BbsItem.swift */; };
+		YU0000000000000000000191 /* UnivNoticeRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */; };
+		YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000192 /* UnivNoticeRepository.swift */; };
+		YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000194 /* UnivNoticeViewModel.swift */; };
+		YU0000000000000000000197 /* UnivNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000196 /* UnivNoticeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -193,6 +198,11 @@
 		YU0000000000000000000182 /* ChatListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000184 /* ChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000186 /* WebViewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewScreen.swift; sourceTree = "<group>"; };
+		YU0000000000000000000188 /* BbsItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BbsItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000192 /* UnivNoticeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000194 /* UnivNoticeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000196 /* UnivNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,6 +267,7 @@
 				YU0000000000000000000093 /* ArticleRemoteDataSource.swift */,
 				YU0000000000000000000122 /* ReplyRemoteDataSource.swift */,
 				YU0000000000000000000172 /* ChatRemoteDataSource.swift */,
+				YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -270,6 +281,7 @@
 				YU0000000000000000000095 /* ArticleRepository.swift */,
 				YU0000000000000000000124 /* ReplyRepository.swift */,
 				YU0000000000000000000174 /* ChatRepository.swift */,
+				YU0000000000000000000192 /* UnivNoticeRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -312,6 +324,7 @@
 				YU0000000000000000000178 /* ChatView.swift */,
 				YU0000000000000000000184 /* ChatListView.swift */,
 				YU0000000000000000000186 /* WebViewScreen.swift */,
+				YU0000000000000000000196 /* UnivNoticeView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -350,6 +363,7 @@
 				YU0000000000000000000166 /* CreateGroupViewModel.swift */,
 				YU0000000000000000000176 /* ChatViewModel.swift */,
 				YU0000000000000000000182 /* ChatListViewModel.swift */,
+				YU0000000000000000000194 /* UnivNoticeViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -376,6 +390,7 @@
 				YU0000000000000000000048 /* ReplyItem.swift */,
 				YU0000000000000000000050 /* MemberItem.swift */,
 				YU0000000000000000000170 /* MessageItem.swift */,
+				YU0000000000000000000188 /* BbsItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -566,6 +581,11 @@
 				YU0000000000000000000183 /* ChatListViewModel.swift in Sources */,
 				YU0000000000000000000185 /* ChatListView.swift in Sources */,
 				YU0000000000000000000187 /* WebViewScreen.swift in Sources */,
+				YU0000000000000000000189 /* BbsItem.swift in Sources */,
+				YU0000000000000000000191 /* UnivNoticeRemoteDataSource.swift in Sources */,
+				YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */,
+				YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */,
+				YU0000000000000000000197 /* UnivNoticeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
