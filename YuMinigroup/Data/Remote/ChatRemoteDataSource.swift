@@ -30,6 +30,7 @@
 //
 
 import Foundation
+import FirebaseAuth
 import FirebaseDatabase
 
 final class ChatRemoteDataSource {
@@ -232,26 +233,70 @@ final class ChatRemoteDataSource {
     // ② 얕은 열거로 얻은 상대 uid마다 Messages/{uid}/{상대}를 queryLimited(toLast: 10)으로 개별
     // 조회해 마지막 메시지 preview/timestamp와, 역순 최대 10건 중 from != uid인 첫 메시지의 name을
     // 뽑는다(fallbackFullRead와 동일 로직 범위, fan-in은 fetchGroupChatRooms와 동일한 remaining
-    // 카운터 관례). REST 열기 자체가 실패(규칙 거부·네트워크 오류·비JSON 등)하면 기능 무손실로
+    // 카운터 관례). REST 열기 자체가 실패(규칙 거부·비2xx·네트워크 오류·비JSON 등)하면 기능 무손실로
     // fallbackFullRead(아래, 구 fetchDirectChatRooms 본문)로 강등한다.
+    //
+    // fix round 1(Finding 1) — Auth.auth().currentUser가 있으면(테스트 계정 로그인 경로 한정. 실
+    // SSO 계정은 애초에 Firebase Auth 세션이 없다 — UserRemoteDataSource.loginTestAccount만
+    // Auth.auth().signIn을 쓰고, LMS 실계정 로그인 경로는 uid를 LMS 이미지 URL에서 파싱해 채운다)
+    // ID 토큰을 얻어 REST 요청에 `&auth=`로 실어 보낸다. 세션이 없는 대다수 실계정은 토큰 없이
+    // 그대로 REST를 시도하고, 아래 performShallowFetch의 상태코드/`error` 필드 검사로 거부 여부를
+    // 판정해 필요하면 fallbackFullRead로 강등한다 — "토큰이 없으면 무조건 폴백"으로 게이트하면 이
+    // 최적화가 실계정 전체에서 상시 죽는다(이 앱의 실계정은 Firebase Auth를 쓰지 않으므로).
     private static func fetchDirectChatRooms(root: DatabaseReference,
                                               currentUid: String,
                                               completion: @escaping ([ChatRoomItem]) -> Void) {
         // DatabaseReference.url(Firebase iOS SDK) — root(루트 DatabaseReference)가 가리키는 위치의
         // 데이터베이스 URL 문자열. root는 항상 루트 ref로 호출되므로 이 값이 곧 DB 루트 URL이다.
-        let databaseURL = root.url
+        // fix round 1(Finding 2) — 트레일링 슬래시가 붙어 오면 "//Messages" 이중 슬래시로 URL이
+        // 깨질 수 있어 정규화한다.
+        let databaseURL = root.url.hasSuffix("/") ? String(root.url.dropLast()) : root.url
 
-        guard let url = URL(string: "\(databaseURL)/Messages/\(currentUid).json?shallow=true") else {
+        if let user = Auth.auth().currentUser {
+            user.getIDToken { token, error in
+                guard let token = token, error == nil else {
+                    // 토큰 조회 자체가 실패 — REST를 시도하지 않고 바로 폴백(기능 무손실).
+                    fallbackFullRead(root: root, currentUid: currentUid, completion: completion)
+                    return
+                }
+                ChatRemoteDataSource.performShallowFetch(databaseURL: databaseURL, root: root, currentUid: currentUid,
+                                                          authToken: token, completion: completion)
+            }
+        } else {
+            ChatRemoteDataSource.performShallowFetch(databaseURL: databaseURL, root: root, currentUid: currentUid, authToken: nil, completion: completion)
+        }
+    }
+
+    // ①의 실제 REST 호출 + 상태 판정 + ②의 상대별 SDK fan-in. authToken이 있으면 `?shallow=true&auth=`
+    // 형태로 붙인다(먼저 붙는 shallow=true가 이미 '?'를 쓰므로 auth는 항상 '&'로 연결).
+    private static func performShallowFetch(databaseURL: String,
+                                             root: DatabaseReference,
+                                             currentUid: String,
+                                             authToken: String?,
+                                             completion: @escaping ([ChatRoomItem]) -> Void) {
+        var urlString = "\(databaseURL)/Messages/\(currentUid).json?shallow=true"
+
+        if let authToken = authToken {
+            urlString += "&auth=\(authToken)"
+        }
+        guard let url = URL(string: urlString) else {
             fallbackFullRead(root: root, currentUid: currentUid, completion: completion)
             return
         }
-        URLSession.shared.dataTask(with: url) { data, _, error in
+        URLSession.shared.dataTask(with: url) { data, response, error in
             // URLSession 콜백은 백그라운드 큐에서 오므로 이후 Firebase SDK 호출/completion을 메인
             // 스레드로 명시 디스패치한다(Firebase 콜백 자체는 메인 큐 관례이므로 여기서 한 번만).
             DispatchQueue.main.async {
-                guard error == nil, let data = data,
-                      let keys = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else {
-                    fallbackFullRead(root: root, currentUid: currentUid, completion: completion)   // 규칙 거부·비JSON 등 — 현행 전체 조회로 강등(기능 무손실)
+                // fix round 1(Finding 1) — RTDB REST는 규칙 거부 시에도 HTTP 401(또는 4xx) +
+                // {"error":"Permission denied"}라는 "정상 JSON"을 돌려준다. error(전송 계층 오류)만
+                // 보면 이 케이스를 못 걸러 otherUids가 ["error"] 하나로 오탐되어 DM 목록이 통째로
+                // 사라진다 — 상태코드 200과 "error" 키 부재를 함께 확인해야 진짜 성공이다.
+                guard error == nil,
+                      let http = response as? HTTPURLResponse, http.statusCode == 200,
+                      let data = data,
+                      let keys = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                      keys["error"] == nil else {
+                    fallbackFullRead(root: root, currentUid: currentUid, completion: completion)   // 규칙 거부·비2xx·비JSON 등 — 현행 전체 조회로 강등(기능 무손실)
                     return
                 }
                 guard !keys.isEmpty else {

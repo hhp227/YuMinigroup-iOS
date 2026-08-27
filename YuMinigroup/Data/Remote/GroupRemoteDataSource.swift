@@ -611,7 +611,12 @@ final class GroupRemoteDataSource {
 
         query.observeSingleEvent(of: .value, with: { snapshot in
             guard snapshot.hasChildren() else {
-                completion(.success(items))
+                // 3차(Task 12, fix round 1) — UserGroupList/{uid}에 true 항목이 하나도 없어도 쿼리
+                // 자체는 성공(스냅샷 수신)했으므로 "성공 경로"에 포함된다. 비앱 그룹만 가입한 계정은
+                // 애초에 이 스냅샷이 항상 비어 있으므로, 여기서 폴백을 생략하면 정확히 이 부채가
+                // 겨냥한 사용자가 계속 key == nil로 남는다 — 아래 resolveKeys 완료 지점과 동일한
+                // 폴백을 적용한다.
+                completion(.success(GroupRemoteDataSource.applyLmsIdKeyFallback(to: items)))
                 return
             }
             var keys: [String] = []
@@ -620,14 +625,33 @@ final class GroupRemoteDataSource {
                 keys.append(child.key)
             }
             guard !keys.isEmpty else {
-                completion(.success(items))
+                // hasChildren()이 true인 이상 사실상 도달하지 않지만(방어적 가드), 도달한다면 위와
+                // 동일하게 "성공했지만 매칭 시도를 못 한" 경로이므로 같은 폴백을 적용한다.
+                completion(.success(GroupRemoteDataSource.applyLmsIdKeyFallback(to: items)))
                 return
             }
             GroupRemoteDataSource.resolveKeys(keys, groupsRef: root.child("Groups"), items: items, completion: completion)
         }, withCancel: { _ in
             // Firebase 조회 실패는 부가 매핑 실패일 뿐이므로 LMS 파싱 결과만으로 성공 처리한다.
+            // 병합을 "시도"하지 못한 경로이므로 폴백을 적용하지 않는다(현행 유지, 위 mergeFirebaseKeys
+            // 상단 nil 가드와 동일하게 "Firebase 미구성"과 같이 취급 — key는 전부 nil인 채로 둔다).
             completion(.success(items))
         })
+    }
+
+    // 3차(Task 12, fix round 1) — 2차 mergeFirebaseGroupKeys(fe945d1)와 동일한 미매칭 폴백을 한
+    // 곳으로 모은 공통 헬퍼. 매칭되지 않은 항목(key == nil)에 LMS ID(item.id)를 그대로 채운다 —
+    // 비앱 그룹(Firebase 미등록 LMS 그룹)의 그룹채팅·게시글 Firebase 기록이 Android처럼 LMS ID를
+    // 키로 써 동작한다(스펙 §7-1). 부수 효과: 게시글 Firebase 이중기록도 Articles/{lmsId}로
+    // 활성화된다. mergeFirebaseKeys의 세 "성공" 지점(빈 스냅샷 조기 반환 2곳 + resolveKeys 완료)에서
+    // 재사용한다 — 미구성/withCancel(조회 자체 실패) 경로는 호출하지 않고 현행 유지.
+    private static func applyLmsIdKeyFallback(to items: [GroupItem]) -> [GroupItem] {
+        var result = items
+
+        for index in result.indices where result[index].key == nil {
+            result[index].key = result[index].id
+        }
+        return result
     }
 
     // UserGroupList에서 찾은 각 firebase key로 Groups/{key}.id를 조회해 LMS grp_id와 매칭되면
@@ -647,16 +671,9 @@ final class GroupRemoteDataSource {
                 }
                 remaining -= 1
                 if remaining == 0 {
-                    // 3차(Task 12) — 2차 mergeFirebaseGroupKeys(fe945d1)와 동일한 미매칭 폴백을
-                    // 1차 병합(가입한 그룹)에도 적용: 매칭되지 않은 항목은 key를 nil로 남기지 않고
-                    // LMS ID를 그대로 채운다. 비앱 그룹(Firebase 미등록 LMS 그룹)의 그룹채팅·게시글
-                    // Firebase 기록이 Android처럼 LMS ID를 키로 써 동작한다(스펙 §7-1). 부수 효과:
-                    // 게시글 Firebase 이중기록도 Articles/{lmsId}로 활성화된다. 미구성(위 mergeFirebaseKeys
-                    // 가드)/withCancel 경로는 폴백을 적용하지 않고 현행(LMS 결과 그대로 성공 처리) 유지.
-                    for index in result.indices where result[index].key == nil {
-                        result[index].key = result[index].id
-                    }
-                    completion(.success(result))
+                    // 3차(Task 12) — 1차 병합(가입한 그룹)의 fan-in 완료 지점("성공" 경로)에도 위
+                    // applyLmsIdKeyFallback을 적용한다(미구성/withCancel 경로는 적용하지 않고 현행 유지).
+                    completion(.success(GroupRemoteDataSource.applyLmsIdKeyFallback(to: result)))
                 }
             }, withCancel: { _ in
                 remaining -= 1
