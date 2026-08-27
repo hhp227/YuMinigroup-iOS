@@ -584,8 +584,14 @@ final class ArticleRemoteDataSource {
         // Android imageExtract/youtubeExtract 미러 — list_cont를 <p> 단위로 순회해 문단마다 첫 <img>가
         // 있으면 이미지로, 없고 youtube-player가 있으면 유튜브로 처리한다(목록 파싱의 viewArt 전체
         // 스캔보다 더 정밀한 스코프 — 상세 전용으로 이 정밀도를 쓰는 이유는 이 파일 상단 코멘트 참고).
+        //
+        // youtubePosition(Task 11) = Android youtubeExtract(:494-515)의 position 카운터 미러 — img
+        // <p>를 만날 때마다 증가하는 카운터를 youtube-player <p>를 만난 시점에 기록한 값과 동일하게,
+        // 여기서는 그 시점까지 쌓인 images.count를 그대로 쓴다(두 로직이 같은 "<p>에 img가 있는가"
+        // 술어를 공유하므로 값이 일치한다).
         var images: [String] = []
         var youtubeId: String?
+        var youtubePosition: Int?
 
         for paragraph in ArticleRemoteDataSource.paragraphs(in: contentInner) {
             if let image = ArticleRemoteDataSource.imageSources(in: paragraph).first {
@@ -594,6 +600,7 @@ final class ArticleRemoteDataSource {
                       let youtubeTag = ArticleRemoteDataSource.openTag(class: "youtube-player", in: paragraph),
                       let rawSrc = HtmlUtil.attribute("src", in: youtubeTag) {
                 youtubeId = ArticleRemoteDataSource.youtubeId(fromSrc: HtmlUtil.text(rawSrc))
+                youtubePosition = images.count
             }
         }
 
@@ -608,7 +615,7 @@ final class ArticleRemoteDataSource {
             content: content,
             images: images,
             youtubeId: youtubeId,
-            youtubePosition: nil,  // 카운팅 로직은 Task 11 몫(상세 인앱 재생 삽입 위치 계산과 함께 추가)
+            youtubePosition: youtubePosition,
             replyCount: replyCount,
             timestamp: timestamp,
             isAuth: auth

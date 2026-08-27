@@ -44,7 +44,21 @@ struct ArticleListCell: View {
                     .lineLimit(4)
             }
 
-            if let firstImage = article.images.first {
+            // Android article_item.xml(:129-148) iv_article_image 우선순위 미러 — youtube가 있으면
+            // 항상 유튜브 썸네일+video_mark 오버레이를 먼저 보이고, 없을 때만 첫 이미지로 대체한다.
+            if let youtubeId = article.youtubeId {
+                ZStack {
+                    RemoteImage(urlString: "https://i.ytimg.com/vi/\(youtubeId)/mqdefault.jpg", placeholder: Image(systemName: "play.rectangle.fill"))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 160)
+                        .clipped()
+                        .cornerRadius(6)
+
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundColor(.white)
+                }
+            } else if let firstImage = article.images.first {
                 RemoteImage(urlString: firstImage)
                     .aspectRatio(contentMode: .fill)
                     .frame(height: 160)

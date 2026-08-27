@@ -37,6 +37,7 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct ArticleView: View {
     @StateObject private var viewModel: ArticleViewModel
@@ -202,51 +203,84 @@ struct ArticleView: View {
                     .font(.subheadline)
             }
 
-            if !viewModel.state.article.images.isEmpty {
-                imageList
-            }
-
-            if let youtubeId = viewModel.state.article.youtubeId {
-                youtubeThumbnail(videoId: youtubeId)
+            if !viewModel.state.article.images.isEmpty || viewModel.state.article.youtubeId != nil {
+                contentList
             }
         }
         .padding(16)
     }
 
-    // Android ll_image의 imageList 바인딩 대응 — 각 이미지 탭 시 PictureView를 탭한 인덱스로 연다.
-    private var imageList: some View {
-        VStack(spacing: 8) {
-            ForEach(Array(viewModel.state.article.images.enumerated()), id: \.offset) { index, image in
-                Button(action: {
-                    fullScreen = .picture(startIndex: index)
-                }) {
-                    RemoteImage(urlString: image)
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 200)
-                        .clipped()
-                        .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
+    // images 스택에 youtubePosition(Task 10/11) 인덱스로 유튜브 embed를 끼워 넣은 통합 표시 순서(브리프
+    // Step 4) — PictureView의 startIndex는 이 리스트의 표시 순서가 아니라 원본 article.images 배열
+    // 인덱스를 그대로 받으므로, .image case에 그 인덱스를 별도로 담아 이미지 인덱스 매핑이 어긋나지
+    // 않게 한다. youtubePosition이 nil이면(옛 데이터 등) 맨 끝에 붙인다.
+    private enum ArticleContentEntry: Identifiable {
+        case image(index: Int, url: String)
+        case youtube(videoId: String)
+
+        var id: String {
+            switch self {
+            case .image(let index, _):
+                return "image-\(index)"
+            case .youtube(let videoId):
+                return "youtube-\(videoId)"
             }
         }
     }
 
-    // Android ll_image의 youtube 바인딩 대응 — 탭하면 유튜브 시청 URL을 외부로 연다.
-    private func youtubeThumbnail(videoId: String) -> some View {
-        Button(action: { openYoutube(videoId) }) {
-            ZStack {
-                RemoteImage(urlString: "https://i.ytimg.com/vi/\(videoId)/mqdefault.jpg", placeholder: Image(systemName: "play.rectangle.fill"))
-                    .aspectRatio(CGFloat(16) / CGFloat(9), contentMode: .fill)
-                    .frame(height: 200)
-                    .clipped()
-                    .cornerRadius(6)
+    private var contentEntries: [ArticleContentEntry] {
+        let images = viewModel.state.article.images
+        var entries = images.enumerated().map { ArticleContentEntry.image(index: $0.offset, url: $0.element) }
 
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundColor(.white)
+        if let youtubeId = viewModel.state.article.youtubeId {
+            let position = viewModel.state.article.youtubePosition ?? entries.count
+            let insertIndex = min(max(position, 0), entries.count)
+            entries.insert(.youtube(videoId: youtubeId), at: insertIndex)
+        }
+        return entries
+    }
+
+    // Android ll_image의 imageList+youtube 바인딩을 하나로 합친 대응 — 이미지는 탭하면 PictureView를
+    // 탭한 인덱스로 열고, 유튜브는 인앱 embed(youtubeEmbed)를 그 자리에 렌더한다.
+    private var contentList: some View {
+        VStack(spacing: 8) {
+            ForEach(contentEntries) { entry in
+                switch entry {
+                case .image(let index, let url):
+                    Button(action: {
+                        fullScreen = .picture(startIndex: index)
+                    }) {
+                        RemoteImage(urlString: url)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                            .clipped()
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+
+                case .youtube(let videoId):
+                    youtubeEmbed(videoId: videoId)
+                }
             }
         }
-        .buttonStyle(.plain)
+    }
+
+    // Android ll_image의 youtube 바인딩(BindingAdapters.bindImageList의 YouTubePlayerView SDK 재생)
+    // 대응 — SDK 의존 없이 WKWebView로 유튜브 iframe embed를 인앱 재생한다(WebViewScreen은 화면 단위
+    // 컴포넌트라 재사용하지 않음, 브리프 지시). embed가 재생되지 않는 상황을 대비해 아래에 항상
+    // "YouTube에서 열기" 폴백 버튼을 둔다(기존 openYoutube 재사용).
+    private func youtubeEmbed(videoId: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            YoutubeEmbedView(videoId: videoId)
+                .aspectRatio(CGFloat(16) / CGFloat(9), contentMode: .fit)
+                .cornerRadius(6)
+
+            Button(action: { openYoutube(videoId) }) {
+                Label("YouTube에서 열기", systemImage: "arrow.up.forward.app")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private func openYoutube(_ videoId: String) {
@@ -327,5 +361,40 @@ struct ArticleView: View {
                 secondaryButton: .cancel(Text("취소"))
             )
         }
+    }
+}
+
+// MARK: - 유튜브 인앱 재생 (WebViewScreen.WebView와 별개의, 이 파일 전용 소형 representable — 브리프 지시)
+
+// updateUIView는 SwiftUI가 header를 재평가할 때마다(댓글 입력 등 이 embed와 무관한 State 변경에도)
+// 다시 불릴 수 있으므로, WebViewScreen.WebView의 lastLoadedURLString 가드와 같은 이유로 Coordinator에
+// 마지막으로 로드한 videoId를 남겨 같은 영상을 반복 load하는 재요청 루프를 막는다.
+private struct YoutubeEmbedView: UIViewRepresentable {
+    let videoId: String
+
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.scrollView.isScrollEnabled = false
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        guard context.coordinator.lastLoadedVideoId != videoId else { return }
+        guard let url = URL(string: "https://www.youtube.com/embed/\(videoId)?playsinline=1") else {
+            return
+        }
+        context.coordinator.lastLoadedVideoId = videoId
+        webView.load(URLRequest(url: url))
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    final class Coordinator {
+        var lastLoadedVideoId: String?
     }
 }
