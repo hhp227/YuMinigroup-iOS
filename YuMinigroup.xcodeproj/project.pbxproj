@@ -113,6 +113,9 @@
 		YU0000000000000000000211 /* TimetableRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000210 /* TimetableRepository.swift */; };
 		YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000212 /* SemesterTimetableViewModel.swift */; };
 		YU0000000000000000000215 /* TimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000214 /* TimetableView.swift */; };
+		YU0000000000000000000217 /* TimetableItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000216 /* TimetableItem.swift */; };
+		YU0000000000000000000219 /* MockTimetableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000218 /* MockTimetableViewModel.swift */; };
+		YU0000000000000000000221 /* MockTimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000220 /* MockTimetableView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -221,6 +224,9 @@
 		YU0000000000000000000210 /* TimetableRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000212 /* SemesterTimetableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SemesterTimetableViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000214 /* TimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000216 /* TimetableItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000218 /* MockTimetableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTimetableViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000220 /* MockTimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTimetableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -349,6 +355,7 @@
 				YU0000000000000000000196 /* UnivNoticeView.swift */,
 				YU0000000000000000000206 /* SeatView.swift */,
 				YU0000000000000000000214 /* TimetableView.swift */,
+				YU0000000000000000000220 /* MockTimetableView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -390,6 +397,7 @@
 				YU0000000000000000000194 /* UnivNoticeViewModel.swift */,
 				YU0000000000000000000204 /* SeatViewModel.swift */,
 				YU0000000000000000000212 /* SemesterTimetableViewModel.swift */,
+				YU0000000000000000000218 /* MockTimetableViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -418,6 +426,7 @@
 				YU0000000000000000000170 /* MessageItem.swift */,
 				YU0000000000000000000188 /* BbsItem.swift */,
 				YU0000000000000000000198 /* SeatItem.swift */,
+				YU0000000000000000000216 /* TimetableItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -622,6 +631,9 @@
 				YU0000000000000000000211 /* TimetableRepository.swift in Sources */,
 				YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */,
 				YU0000000000000000000215 /* TimetableView.swift in Sources */,
+				YU0000000000000000000217 /* TimetableItem.swift in Sources */,
+				YU0000000000000000000219 /* MockTimetableViewModel.swift in Sources */,
+				YU0000000000000000000221 /* MockTimetableView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

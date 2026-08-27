@@ -18,8 +18,9 @@
 //  Android colorAccent(#FF4081) 인디케이터색은 이 화면 전용 새 하드코딩 색을 끌어오지 않고 흰 밑줄로
 //  근사한다(시각적 의도 — 선택 강조 — 만 유지, 스펙이 인디케이터 색을 못박지 않았다).
 //
-//  탭 2번째(모의시간표 작성)는 Task 5가 채우기 전까지 PlaceholderView와 동일한 "준비중입니다"
-//  플레이스홀더로 둔다(브리프 지시).
+//  탭 2번째(모의시간표 작성)는 MockTimetableTab(Task 5) — SemesterTimetableTab과 같은 이유로
+//  @StateObject를 탭 전환 경계에서 살고 죽게 둔다(모의시간표는 UserDefaults 영속이라 탭을 벗어났다
+//  돌아와도 init에서 다시 읽어오면 그대로 복원된다 — 별도 캐시가 필요 없다).
 //
 
 import SwiftUI
@@ -44,12 +45,7 @@ struct TimetableView: View {
             if selectedTab == 0 {
                 SemesterTimetableTab()
             } else {
-                VStack(spacing: 0) {
-                    Spacer()
-                    Text("준비중입니다")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
+                MockTimetableTab()
             }
         }
     }
@@ -73,6 +69,17 @@ struct TimetableView: View {
             }
         }
         .background(Color.accentColor)
+    }
+}
+
+// Android MockTimeTableFragment(fragment_mock_timetable.xml) 대응 — 둘째 탭. viewModel은 UserDefaults를
+// 소스로 삼으므로 SemesterTimetableTab과 같은 @StateObject 경계를 둬도 데이터 유실이 없다(탭을
+// 벗어났다 돌아오면 init이 UserDefaults를 다시 읽어 그대로 복원).
+private struct MockTimetableTab: View {
+    @StateObject private var viewModel = MockTimetableViewModel()
+
+    var body: some View {
+        MockTimetableView(viewModel: viewModel)
     }
 }
 
