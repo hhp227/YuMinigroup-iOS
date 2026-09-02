@@ -152,10 +152,10 @@ final class ArticleRemoteDataSource {
     // 동일하게 CLUB_GRP_ID+displayL=1만으로 GET, 첫 comment_wrap의 num 속성이 방금 쓴 글) → Firebase
     // Articles/{groupKey}에 push. 각 단계 실패 시 그 자리에서 바로 completion(.error)하고 다음 단계로
     // 진행하지 않는다(중간 상태 없음) — completion은 세 단계 중 정확히 한 지점에서만 최종 호출된다.
-    func addArticle(title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
+    func addArticle(title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
         completion(.loading)
         let cookie = CookieStore.shared.cookieHeader ?? ""
-        let htmlContent = ArticleRemoteDataSource.buildContentHtml(text: content, imageUrls: imageUrls)
+        let htmlContent = ArticleRemoteDataSource.buildContentHtml(text: content, imageUrls: imageUrls, youtube: youtube)
         let formParams = [
             "SBJT": title,
             "CLUB_GRP_ID": groupId,
@@ -176,7 +176,7 @@ final class ArticleRemoteDataSource {
                     completion(.error("게시글 등록에 실패했습니다."))
                     return
                 }
-                self.fetchNewArticleId(title: title, content: content, imageUrls: imageUrls, completion: completion)
+                self.fetchNewArticleId(title: title, content: content, imageUrls: imageUrls, youtube: youtube, completion: completion)
             }
         }
     }
@@ -185,7 +185,7 @@ final class ArticleRemoteDataSource {
     // artl_num을 얻으려고 목록을 필터 없이(CLUB_GRP_ID+displayL=1만) 재조회해 "가장 최근 글"인 첫
     // comment_wrap의 num 속성을 그대로 쓴다(Android도 동일하게 필터 없는 첫 블록을 신뢰한다 — 방금
     // 작성한 글이 항상 최신순 목록의 맨 앞에 온다는 전제).
-    private func fetchNewArticleId(title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
+    private func fetchNewArticleId(title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
         let cookie = CookieStore.shared.cookieHeader ?? ""
         let formParams = [
             "CLUB_GRP_ID": groupId,
@@ -206,7 +206,7 @@ final class ArticleRemoteDataSource {
                     completion(.error("게시글을 등록했지만 번호를 확인하지 못했습니다."))
                     return
                 }
-                self.writeFirebaseArticle(articleId: artlNum, title: title, content: content, imageUrls: imageUrls, completion: completion)
+                self.writeFirebaseArticle(articleId: artlNum, title: title, content: content, imageUrls: imageUrls, youtube: youtube, completion: completion)
             }
         }
     }
@@ -217,7 +217,12 @@ final class ArticleRemoteDataSource {
     // (ReplyRemoteDataSource.addReply와 같은 방침). groupKey/database가 없으면(Firebase 미설정) 그 보강만
     // 생략하고 LMS 결과(articleId/title/content/imageUrls)만으로 성공 처리한다 — completion은 두 분기
     // 중 정확히 한 곳에서만 불린다.
-    private func writeFirebaseArticle(articleId: String, title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
+    //
+    // youtube(3차 Task 10 신설)는 있을 때만 "youtube" 딕셔너리(Android insertArticleToFirebase의
+    // YouTubeItem Bean 미러 — position/videoId/publishedAt/title/thumbnail/channelTitle 6필드)를
+    // map에 얹는다. 반환 ArticleItem의 youtubeId/youtubePosition도 함께 채워, LMS 결과만으로 성공
+    // 처리하는 분기(Firebase 미설정)에서도 화면이 방금 첨부한 유튜브를 즉시 반영할 수 있게 한다.
+    private func writeFirebaseArticle(articleId: String, title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
         let user = PreferenceManager.shared.user
         let timestamp = Date()
         var item = ArticleItem(
@@ -228,7 +233,8 @@ final class ArticleRemoteDataSource {
             title: title,
             content: content,
             images: imageUrls,
-            youtubeId: nil,
+            youtubeId: youtube?.videoId,
+            youtubePosition: youtube?.position,
             replyCount: 0,
             timestamp: timestamp,
             isAuth: true
@@ -239,7 +245,7 @@ final class ArticleRemoteDataSource {
             return
         }
         let ref = root.child("Articles").child(groupKey).childByAutoId()
-        let map: [String: Any] = [
+        var map: [String: Any] = [
             "id": articleId,
             "uid": item.uid,
             "name": item.name,
@@ -249,9 +255,25 @@ final class ArticleRemoteDataSource {
             "images": imageUrls
         ]
 
+        if let youtube = youtube {
+            map["youtube"] = ArticleRemoteDataSource.youtubeMap(youtube)
+        }
         item.key = ref.key
         ref.setValue(map)
         completion(.success(item))
+    }
+
+    // YouTubeItem → Firebase Bean 미러 딕셔너리(Android insertArticleToFirebase/updateArticleDataToFirebase가
+    // 공유하는 6필드).
+    private static func youtubeMap(_ youtube: YouTubeItem) -> [String: Any] {
+        [
+            "position": youtube.position,
+            "videoId": youtube.videoId,
+            "publishedAt": youtube.publishedAt,
+            "title": youtube.title,
+            "thumbnail": youtube.thumbnail,
+            "channelTitle": youtube.channelTitle
+        ]
     }
 
     // MARK: - 수정 (Task 17)
@@ -259,10 +281,10 @@ final class ArticleRemoteDataSource {
     // Android CreateArticleViewModel.actionUpdate → ArticleRemoteDataSource.setArticle 미러. Android는
     // MODIFY_ARTICLE 응답 자체의 isError를 확인하지 않고(WRITE_ARTICLE/DELETE_ARTICLE과 달리) 전송
     // 성공(HTTP 2xx)이면 곧바로 Firebase 갱신으로 넘어가므로 여기서도 동일하게 처리한다.
-    func setArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
+    func setArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
         completion(.loading)
         let cookie = CookieStore.shared.cookieHeader ?? ""
-        let htmlContent = ArticleRemoteDataSource.buildContentHtml(text: content, imageUrls: imageUrls)
+        let htmlContent = ArticleRemoteDataSource.buildContentHtml(text: content, imageUrls: imageUrls, youtube: youtube)
         let formParams = [
             "CLUB_GRP_ID": groupId,
             "ARTL_NUM": articleId,
@@ -278,7 +300,7 @@ final class ArticleRemoteDataSource {
             case .failure(let error):
                 completion(.error(error.localizedDescription))
             case .success:
-                self.updateFirebaseArticle(articleId: articleId, key: key, title: title, content: content, imageUrls: imageUrls, completion: completion)
+                self.updateFirebaseArticle(articleId: articleId, key: key, title: title, content: content, imageUrls: imageUrls, youtube: youtube, completion: completion)
             }
         }
     }
@@ -290,7 +312,13 @@ final class ArticleRemoteDataSource {
     // 새로 만들지 않기 위해 못 찾아도 LMS 결과 기반 fallback으로 항상 성공 처리한다(Firebase nil-skip
     // 원칙 — ArticleRemoteDataSource.mergeFirebase 등 이 파일의 다른 보강 실패 처리와 동일). completion은
     // guard-else 분기와 with/withCancel 중 정확히 한 곳에서만 불린다.
-    private func updateFirebaseArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], completion: @escaping (Resource<ArticleItem>) -> Void) {
+    //
+    // youtube(3차 Task 10 신설 — 스펙 §2 결함 7 수정): 기존 dict의 "youtube" 키를 항상 이번 첨부로
+    // 덮어쓴다 — youtube가 nil이면(수정 중 제거했거나 애초에 없었으면) removeValue(forKey:)로 지운다.
+    // Android updateArticleDataToFirebase는 youtube가 있을 때만 넣고 없을 때는 기존 값을 손대지 않아,
+    // "LMS에선 영상을 지웠는데 Firebase엔 옛 youtube가 남는" 정합성 결함이 있었다 — 여기서는 매번
+    // 명시적으로 덮어쓰거나 제거해 그 결함을 만들지 않는다.
+    private func updateFirebaseArticle(articleId: String, key: String?, title: String, content: String, imageUrls: [String], youtube: YouTubeItem?, completion: @escaping (Resource<ArticleItem>) -> Void) {
         let fallback = ArticleItem(
             id: articleId,
             key: key,
@@ -299,7 +327,8 @@ final class ArticleRemoteDataSource {
             title: title,
             content: content,
             images: imageUrls,
-            youtubeId: nil,
+            youtubeId: youtube?.videoId,
+            youtubePosition: youtube?.position,
             replyCount: 0,
             timestamp: Date(),
             isAuth: true
@@ -321,6 +350,11 @@ final class ArticleRemoteDataSource {
             data["title"] = title
             data["content"] = content
             data["images"] = imageUrls
+            if let youtube = youtube {
+                data["youtube"] = ArticleRemoteDataSource.youtubeMap(youtube)
+            } else {
+                data.removeValue(forKey: "youtube")
+            }
             ref.setValue(data)
             if let uid = data["uid"] as? String {
                 result.uid = uid
@@ -344,13 +378,21 @@ final class ArticleRemoteDataSource {
     // 그 뒤에 이미지 URL마다 <p><img></p> 문단을 덧붙인다. parseArticles/parseArticleDetail이 list_cont를
     // <p> 단위(HtmlUtil.cells(tag:"p"))/문단 단위(paragraphs)로 되읽는 것과 왕복이 맞아야 하므로, 줄바꿈
     // 없는 빈 본문(이미지만 있는 글)도 이미지 문단만으로 정상 파싱된다.
-    private static func buildContentHtml(text: String, imageUrls: [String]) -> String {
+    //
+    // youtube(3차 Task 10 신설)는 이미지 문단들 뒤에 Android CreateArticleViewModel.uploadProcess(:255)
+    // 조각을 바이트 그대로 옮겨 붙인다(닫는 태그가 </embed><p>로 오타난 것·src 뒤 공백 2칸까지 포함 —
+    // LMS 서버가 이미 이 형식을 검증된 형식으로 소비하므로 "고치지" 않는다, 스펙 §6.4). 유튜브는
+    // images 배열에 넣지 않는다(업로드 대상이 아니므로 이 함수 호출 전 흐름도 무변경).
+    private static func buildContentHtml(text: String, imageUrls: [String], youtube: YouTubeItem?) -> String {
         var paragraphs: [String] = []
 
         if !text.isEmpty {
             paragraphs.append(contentsOf: text.components(separatedBy: "\n").map { "<p>\(escapeHtml($0))</p>" })
         }
         paragraphs.append(contentsOf: imageUrls.map { "<p><img src=\"\($0)\" width=\"488\"></p>" })
+        if let youtube = youtube {
+            paragraphs.append("<p><embed title=\"YouTube video player\" class=\"youtube-player\" autostart=\"true\" src=\"//www.youtube.com/embed/\(youtube.videoId)?autoplay=1\"  width=\"488\" height=\"274\"></embed><p>")
+        }
         return paragraphs.joined()
     }
 
@@ -542,16 +584,29 @@ final class ArticleRemoteDataSource {
         // Android imageExtract/youtubeExtract 미러 — list_cont를 <p> 단위로 순회해 문단마다 첫 <img>가
         // 있으면 이미지로, 없고 youtube-player가 있으면 유튜브로 처리한다(목록 파싱의 viewArt 전체
         // 스캔보다 더 정밀한 스코프 — 상세 전용으로 이 정밀도를 쓰는 이유는 이 파일 상단 코멘트 참고).
+        //
+        // youtubePosition(Task 11) = Android youtubeExtract(:494-515)의 position 카운터 미러 — img
+        // <p>를 만날 때마다 증가하는 카운터를 youtube-player <p>를 만난 시점에 기록한 값과 동일하게,
+        // 여기서는 그 시점까지 쌓인 images.count를 그대로 쓴다(두 로직이 같은 "<p>에 img가 있는가"
+        // 술어를 공유하므로 값이 일치한다).
+        //
+        // youtubeId/youtubePosition 대입은 함께 묶어 원자적으로 처리한다(fix round 1) — Android는
+        // new YouTubeItem(...)과 .position 대입이 같은 try 블록 안에서 순차 실행되어 substring 실패
+        // 시 예외로 둘 다 미설정되므로, id 파싱이 실패(nil)했는데 position만 설정되는 상태가 없다.
+        // 여기서도 youtubeId(fromSrc:)가 nil을 반환하면 if let이 실패해 두 값 다 그대로 nil로 남는다.
         var images: [String] = []
         var youtubeId: String?
+        var youtubePosition: Int?
 
         for paragraph in ArticleRemoteDataSource.paragraphs(in: contentInner) {
             if let image = ArticleRemoteDataSource.imageSources(in: paragraph).first {
                 images.append(image)
             } else if youtubeId == nil,
                       let youtubeTag = ArticleRemoteDataSource.openTag(class: "youtube-player", in: paragraph),
-                      let rawSrc = HtmlUtil.attribute("src", in: youtubeTag) {
-                youtubeId = ArticleRemoteDataSource.youtubeId(fromSrc: HtmlUtil.text(rawSrc))
+                      let rawSrc = HtmlUtil.attribute("src", in: youtubeTag),
+                      let extractedId = ArticleRemoteDataSource.youtubeId(fromSrc: HtmlUtil.text(rawSrc)) {
+                youtubeId = extractedId
+                youtubePosition = images.count
             }
         }
 
@@ -566,6 +621,7 @@ final class ArticleRemoteDataSource {
             content: content,
             images: images,
             youtubeId: youtubeId,
+            youtubePosition: youtubePosition,
             replyCount: replyCount,
             timestamp: timestamp,
             isAuth: auth
@@ -686,6 +742,7 @@ final class ArticleRemoteDataSource {
                 content: content,
                 images: images,
                 youtubeId: youtubeId,
+                youtubePosition: nil,  // 목록은 미사용(Android 미러 — 기본 nil, 스펙 §6.5)
                 replyCount: replyCount,
                 timestamp: timestamp,
                 isAuth: auth

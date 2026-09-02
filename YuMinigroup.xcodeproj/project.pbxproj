@@ -66,6 +66,17 @@
 		YU0000000000000000000117 /* UserDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000116 /* UserDialogView.swift */; };
 		YU0000000000000000000119 /* Tab4ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000118 /* Tab4ViewModel.swift */; };
 		YU0000000000000000000121 /* Tab4View.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000120 /* Tab4View.swift */; };
+		YU0000000000000000000223 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000222 /* NoticeView.swift */; };
+		YU0000000000000000000225 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000224 /* SettingsView.swift */; };
+		YU0000000000000000000227 /* MemberManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000226 /* MemberManagementView.swift */; };
+		YU0000000000000000000229 /* DefaultSettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000228 /* DefaultSettingView.swift */; };
+		YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000230 /* MemberManagementViewModel.swift */; };
+		YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000232 /* DefaultSettingViewModel.swift */; };
+		YU0000000000000000000235 /* YouTubeItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000234 /* YouTubeItem.swift */; };
+		YU0000000000000000000237 /* YouTubeRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */; };
+		YU0000000000000000000239 /* YouTubeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000238 /* YouTubeRepository.swift */; };
+		YU0000000000000000000241 /* YoutubeSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000240 /* YoutubeSearchViewModel.swift */; };
+		YU0000000000000000000243 /* YouTubeSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000242 /* YouTubeSearchView.swift */; };
 		YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000122 /* ReplyRemoteDataSource.swift */; };
 		YU0000000000000000000125 /* ReplyRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000124 /* ReplyRepository.swift */; };
 		YU0000000000000000000127 /* ArticleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000126 /* ArticleViewModel.swift */; };
@@ -81,6 +92,41 @@
 		YU0000000000000000000147 /* PictureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000146 /* PictureView.swift */; };
 		YU0000000000000000000148 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000149 /* ProfileViewModel.swift */; };
 		YU0000000000000000000150 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000151 /* ProfileView.swift */; };
+		YU0000000000000000000153 /* FindGroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000152 /* FindGroupViewModel.swift */; };
+		YU0000000000000000000155 /* GroupInfoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000154 /* GroupInfoViewModel.swift */; };
+		YU0000000000000000000157 /* GroupListContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000156 /* GroupListContent.swift */; };
+		YU0000000000000000000159 /* GroupInfoDialogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000158 /* GroupInfoDialogView.swift */; };
+		YU0000000000000000000161 /* FindGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000160 /* FindGroupView.swift */; };
+		YU0000000000000000000163 /* RequestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000162 /* RequestViewModel.swift */; };
+		YU0000000000000000000165 /* RequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000164 /* RequestView.swift */; };
+		YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000166 /* CreateGroupViewModel.swift */; };
+		YU0000000000000000000169 /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000168 /* CreateGroupView.swift */; };
+		YU0000000000000000000171 /* MessageItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000170 /* MessageItem.swift */; };
+		YU0000000000000000000173 /* ChatRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000172 /* ChatRemoteDataSource.swift */; };
+		YU0000000000000000000175 /* ChatRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000174 /* ChatRepository.swift */; };
+		YU0000000000000000000177 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000176 /* ChatViewModel.swift */; };
+		YU0000000000000000000179 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000178 /* ChatView.swift */; };
+		YU0000000000000000000181 /* MessageRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000180 /* MessageRow.swift */; };
+		YU0000000000000000000183 /* ChatListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000182 /* ChatListViewModel.swift */; };
+		YU0000000000000000000185 /* ChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000184 /* ChatListView.swift */; };
+		YU0000000000000000000187 /* WebViewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000186 /* WebViewScreen.swift */; };
+		YU0000000000000000000189 /* BbsItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000188 /* BbsItem.swift */; };
+		YU0000000000000000000191 /* UnivNoticeRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */; };
+		YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000192 /* UnivNoticeRepository.swift */; };
+		YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000194 /* UnivNoticeViewModel.swift */; };
+		YU0000000000000000000197 /* UnivNoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000196 /* UnivNoticeView.swift */; };
+		YU0000000000000000000199 /* SeatItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000198 /* SeatItem.swift */; };
+		YU0000000000000000000201 /* SeatRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000200 /* SeatRemoteDataSource.swift */; };
+		YU0000000000000000000203 /* SeatRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000202 /* SeatRepository.swift */; };
+		YU0000000000000000000205 /* SeatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000204 /* SeatViewModel.swift */; };
+		YU0000000000000000000207 /* SeatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000206 /* SeatView.swift */; };
+		YU0000000000000000000209 /* TimetableRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000208 /* TimetableRemoteDataSource.swift */; };
+		YU0000000000000000000211 /* TimetableRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000210 /* TimetableRepository.swift */; };
+		YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000212 /* SemesterTimetableViewModel.swift */; };
+		YU0000000000000000000215 /* TimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000214 /* TimetableView.swift */; };
+		YU0000000000000000000217 /* TimetableItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000216 /* TimetableItem.swift */; };
+		YU0000000000000000000219 /* MockTimetableViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000218 /* MockTimetableViewModel.swift */; };
+		YU0000000000000000000221 /* MockTimetableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = YU0000000000000000000220 /* MockTimetableView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -142,6 +188,17 @@
 		YU0000000000000000000116 /* UserDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDialogView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000118 /* Tab4ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4ViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000120 /* Tab4View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tab4View.swift; sourceTree = "<group>"; };
+		YU0000000000000000000222 /* NoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000224 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000226 /* MemberManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberManagementView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000228 /* DefaultSettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000230 /* MemberManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemberManagementViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000232 /* DefaultSettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultSettingViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000234 /* YouTubeItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000238 /* YouTubeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000240 /* YoutubeSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YoutubeSearchViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000242 /* YouTubeSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeSearchView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000122 /* ReplyRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRemoteDataSource.swift; sourceTree = "<group>"; };
 		YU0000000000000000000124 /* ReplyRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplyRepository.swift; sourceTree = "<group>"; };
 		YU0000000000000000000126 /* ArticleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleViewModel.swift; sourceTree = "<group>"; };
@@ -157,6 +214,41 @@
 		YU0000000000000000000146 /* PictureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureView.swift; sourceTree = "<group>"; };
 		YU0000000000000000000149 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		YU0000000000000000000151 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000152 /* FindGroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindGroupViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000154 /* GroupInfoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000156 /* GroupListContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListContent.swift; sourceTree = "<group>"; };
+		YU0000000000000000000158 /* GroupInfoDialogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoDialogView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000160 /* FindGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindGroupView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000162 /* RequestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000164 /* RequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000166 /* CreateGroupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000168 /* CreateGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000170 /* MessageItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000172 /* ChatRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000174 /* ChatRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000176 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000178 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000180 /* MessageRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRow.swift; sourceTree = "<group>"; };
+		YU0000000000000000000182 /* ChatListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000184 /* ChatListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000186 /* WebViewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewScreen.swift; sourceTree = "<group>"; };
+		YU0000000000000000000188 /* BbsItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BbsItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000192 /* UnivNoticeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000194 /* UnivNoticeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000196 /* UnivNoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnivNoticeView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000198 /* SeatItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000200 /* SeatRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000202 /* SeatRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000204 /* SeatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000206 /* SeatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeatView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000208 /* TimetableRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableRemoteDataSource.swift; sourceTree = "<group>"; };
+		YU0000000000000000000210 /* TimetableRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableRepository.swift; sourceTree = "<group>"; };
+		YU0000000000000000000212 /* SemesterTimetableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SemesterTimetableViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000214 /* TimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableView.swift; sourceTree = "<group>"; };
+		YU0000000000000000000216 /* TimetableItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimetableItem.swift; sourceTree = "<group>"; };
+		YU0000000000000000000218 /* MockTimetableViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTimetableViewModel.swift; sourceTree = "<group>"; };
+		YU0000000000000000000220 /* MockTimetableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTimetableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +312,11 @@
 				YU0000000000000000000081 /* GroupRemoteDataSource.swift */,
 				YU0000000000000000000093 /* ArticleRemoteDataSource.swift */,
 				YU0000000000000000000122 /* ReplyRemoteDataSource.swift */,
+				YU0000000000000000000172 /* ChatRemoteDataSource.swift */,
+				YU0000000000000000000190 /* UnivNoticeRemoteDataSource.swift */,
+				YU0000000000000000000200 /* SeatRemoteDataSource.swift */,
+				YU0000000000000000000208 /* TimetableRemoteDataSource.swift */,
+				YU0000000000000000000236 /* YouTubeRemoteDataSource.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -232,6 +329,11 @@
 				YU0000000000000000000083 /* GroupRepository.swift */,
 				YU0000000000000000000095 /* ArticleRepository.swift */,
 				YU0000000000000000000124 /* ReplyRepository.swift */,
+				YU0000000000000000000174 /* ChatRepository.swift */,
+				YU0000000000000000000192 /* UnivNoticeRepository.swift */,
+				YU0000000000000000000202 /* SeatRepository.swift */,
+				YU0000000000000000000210 /* TimetableRepository.swift */,
+				YU0000000000000000000238 /* YouTubeRepository.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -261,11 +363,28 @@
 				YU0000000000000000000112 /* Tab3View.swift */,
 				YU0000000000000000000116 /* UserDialogView.swift */,
 				YU0000000000000000000120 /* Tab4View.swift */,
+				YU0000000000000000000222 /* NoticeView.swift */,
 				YU0000000000000000000128 /* ArticleView.swift */,
 				YU0000000000000000000138 /* CreateArticleView.swift */,
 				YU0000000000000000000142 /* UpdateReplyView.swift */,
 				YU0000000000000000000146 /* PictureView.swift */,
 				YU0000000000000000000151 /* ProfileView.swift */,
+				YU0000000000000000000156 /* GroupListContent.swift */,
+				YU0000000000000000000158 /* GroupInfoDialogView.swift */,
+				YU0000000000000000000160 /* FindGroupView.swift */,
+				YU0000000000000000000164 /* RequestView.swift */,
+				YU0000000000000000000168 /* CreateGroupView.swift */,
+				YU0000000000000000000178 /* ChatView.swift */,
+				YU0000000000000000000184 /* ChatListView.swift */,
+				YU0000000000000000000186 /* WebViewScreen.swift */,
+				YU0000000000000000000196 /* UnivNoticeView.swift */,
+				YU0000000000000000000206 /* SeatView.swift */,
+				YU0000000000000000000214 /* TimetableView.swift */,
+				YU0000000000000000000220 /* MockTimetableView.swift */,
+				YU0000000000000000000224 /* SettingsView.swift */,
+				YU0000000000000000000226 /* MemberManagementView.swift */,
+				YU0000000000000000000228 /* DefaultSettingView.swift */,
+				YU0000000000000000000242 /* YouTubeSearchView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -275,6 +394,7 @@
 			children = (
 				YU0000000000000000000101 /* ArticleListCell.swift */,
 				YU0000000000000000000130 /* ReplyListCell.swift */,
+				YU0000000000000000000180 /* MessageRow.swift */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -297,6 +417,19 @@
 				YU0000000000000000000140 /* UpdateReplyViewModel.swift */,
 				YU0000000000000000000144 /* PictureViewModel.swift */,
 				YU0000000000000000000149 /* ProfileViewModel.swift */,
+				YU0000000000000000000152 /* FindGroupViewModel.swift */,
+				YU0000000000000000000154 /* GroupInfoViewModel.swift */,
+				YU0000000000000000000162 /* RequestViewModel.swift */,
+				YU0000000000000000000166 /* CreateGroupViewModel.swift */,
+				YU0000000000000000000176 /* ChatViewModel.swift */,
+				YU0000000000000000000182 /* ChatListViewModel.swift */,
+				YU0000000000000000000194 /* UnivNoticeViewModel.swift */,
+				YU0000000000000000000204 /* SeatViewModel.swift */,
+				YU0000000000000000000212 /* SemesterTimetableViewModel.swift */,
+				YU0000000000000000000218 /* MockTimetableViewModel.swift */,
+				YU0000000000000000000230 /* MemberManagementViewModel.swift */,
+				YU0000000000000000000232 /* DefaultSettingViewModel.swift */,
+				YU0000000000000000000240 /* YoutubeSearchViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -322,6 +455,11 @@
 				YU0000000000000000000046 /* ArticleItem.swift */,
 				YU0000000000000000000048 /* ReplyItem.swift */,
 				YU0000000000000000000050 /* MemberItem.swift */,
+				YU0000000000000000000170 /* MessageItem.swift */,
+				YU0000000000000000000188 /* BbsItem.swift */,
+				YU0000000000000000000198 /* SeatItem.swift */,
+				YU0000000000000000000216 /* TimetableItem.swift */,
+				YU0000000000000000000234 /* YouTubeItem.swift */,
 			);
 			path = Dto;
 			sourceTree = "<group>";
@@ -479,6 +617,7 @@
 				YU0000000000000000000117 /* UserDialogView.swift in Sources */,
 				YU0000000000000000000119 /* Tab4ViewModel.swift in Sources */,
 				YU0000000000000000000121 /* Tab4View.swift in Sources */,
+				YU0000000000000000000223 /* NoticeView.swift in Sources */,
 				YU0000000000000000000123 /* ReplyRemoteDataSource.swift in Sources */,
 				YU0000000000000000000125 /* ReplyRepository.swift in Sources */,
 				YU0000000000000000000127 /* ArticleViewModel.swift in Sources */,
@@ -494,6 +633,51 @@
 				YU0000000000000000000147 /* PictureView.swift in Sources */,
 				YU0000000000000000000148 /* ProfileViewModel.swift in Sources */,
 				YU0000000000000000000150 /* ProfileView.swift in Sources */,
+				YU0000000000000000000153 /* FindGroupViewModel.swift in Sources */,
+				YU0000000000000000000155 /* GroupInfoViewModel.swift in Sources */,
+				YU0000000000000000000157 /* GroupListContent.swift in Sources */,
+				YU0000000000000000000159 /* GroupInfoDialogView.swift in Sources */,
+				YU0000000000000000000161 /* FindGroupView.swift in Sources */,
+				YU0000000000000000000163 /* RequestViewModel.swift in Sources */,
+				YU0000000000000000000165 /* RequestView.swift in Sources */,
+				YU0000000000000000000167 /* CreateGroupViewModel.swift in Sources */,
+				YU0000000000000000000169 /* CreateGroupView.swift in Sources */,
+				YU0000000000000000000171 /* MessageItem.swift in Sources */,
+				YU0000000000000000000173 /* ChatRemoteDataSource.swift in Sources */,
+				YU0000000000000000000175 /* ChatRepository.swift in Sources */,
+				YU0000000000000000000177 /* ChatViewModel.swift in Sources */,
+				YU0000000000000000000179 /* ChatView.swift in Sources */,
+				YU0000000000000000000181 /* MessageRow.swift in Sources */,
+				YU0000000000000000000183 /* ChatListViewModel.swift in Sources */,
+				YU0000000000000000000185 /* ChatListView.swift in Sources */,
+				YU0000000000000000000187 /* WebViewScreen.swift in Sources */,
+				YU0000000000000000000189 /* BbsItem.swift in Sources */,
+				YU0000000000000000000191 /* UnivNoticeRemoteDataSource.swift in Sources */,
+				YU0000000000000000000193 /* UnivNoticeRepository.swift in Sources */,
+				YU0000000000000000000195 /* UnivNoticeViewModel.swift in Sources */,
+				YU0000000000000000000197 /* UnivNoticeView.swift in Sources */,
+				YU0000000000000000000199 /* SeatItem.swift in Sources */,
+				YU0000000000000000000201 /* SeatRemoteDataSource.swift in Sources */,
+				YU0000000000000000000203 /* SeatRepository.swift in Sources */,
+				YU0000000000000000000205 /* SeatViewModel.swift in Sources */,
+				YU0000000000000000000207 /* SeatView.swift in Sources */,
+				YU0000000000000000000209 /* TimetableRemoteDataSource.swift in Sources */,
+				YU0000000000000000000211 /* TimetableRepository.swift in Sources */,
+				YU0000000000000000000213 /* SemesterTimetableViewModel.swift in Sources */,
+				YU0000000000000000000215 /* TimetableView.swift in Sources */,
+				YU0000000000000000000217 /* TimetableItem.swift in Sources */,
+				YU0000000000000000000219 /* MockTimetableViewModel.swift in Sources */,
+				YU0000000000000000000221 /* MockTimetableView.swift in Sources */,
+				YU0000000000000000000225 /* SettingsView.swift in Sources */,
+				YU0000000000000000000227 /* MemberManagementView.swift in Sources */,
+				YU0000000000000000000229 /* DefaultSettingView.swift in Sources */,
+				YU0000000000000000000231 /* MemberManagementViewModel.swift in Sources */,
+				YU0000000000000000000233 /* DefaultSettingViewModel.swift in Sources */,
+				YU0000000000000000000235 /* YouTubeItem.swift in Sources */,
+				YU0000000000000000000237 /* YouTubeRemoteDataSource.swift in Sources */,
+				YU0000000000000000000239 /* YouTubeRepository.swift in Sources */,
+				YU0000000000000000000241 /* YoutubeSearchViewModel.swift in Sources */,
+				YU0000000000000000000243 /* YouTubeSearchView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

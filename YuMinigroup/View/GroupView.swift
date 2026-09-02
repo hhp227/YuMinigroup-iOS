@@ -51,6 +51,20 @@
 //  자체적으로 navigationBarHiddenCompat()를 걸지 않는다 — 시스템 백 버튼이 자연스럽게 나타나고,
 //  그 위에 CollapsingListScaffold 전용 배경/틴트 색만 얹는다(예제 ParallaxTabScreen 로직 그대로).
 //
+//  3차 Task 8 — Tab4View에 onGroupUpdated: { viewModel.applyGroupUpdate(...) }를 넘긴다. SettingsView가
+//  모임정보 저장에 성공하면 이 클로저를 거쳐 GroupViewModel.groupItem의 name/description_/joinType
+//  (+이미지 변경 시 image)만 표적으로 바뀌고, 위 navigationTitle(viewModel.groupItem.name)과
+//  headerBackground(hasCoverPhoto)가 같은 프로퍼티를 읽고 있어 재조회 없이 자동으로 갱신된다.
+//  Tab4ViewModel.groupItem은 이 갱신과 별개로 그대로 둔다(건드리지 않음) — GroupView.init에서 딱 한
+//  번 스냅샷으로 받은 상수라 이후 GroupViewModel이 바뀌어도 따라 갱신되지 않지만, Tab4ViewModel이
+//  groupItem을 쓰는 곳은 actionLabel/confirmMessage(isAdmin 기반, 소모임 설정 저장으로는 안 바뀜)와
+//  leaveOrClose(id/key, 역시 안 바뀜)뿐이라 무해하다 — 유일한 예외는 이 화면(Tab4View)이 "설정" 행을
+//  다시 탭했을 때 SettingsView(groupItem: viewModel.groupItem, ...)에 넘어가는 groupItem이 GroupView가
+//  아니라 Tab4ViewModel의 스냅샷이라는 점인데, SettingsView의 모임정보 탭은 어차피 fetchGroupSetting으로
+//  이름/설명/joinType을 서버에서 다시 읽어와 프리필하므로 그 값 자체는 항상 최신이고, 유일하게 stale할
+//  수 있는 건 이미지 프리뷰 소스(existingImageURL = groupItem.image, 서버 재조회 대상이 아님)뿐이다
+//  (브리프가 이 정도 재사용을 명시적으로 허용했다 — "joinType 무관").
+//
 
 import SwiftUI
 
@@ -75,6 +89,9 @@ struct GroupView: View {
     // 실제로 잡히는 스코프)에서 fullScreenCover를 달기 때문에, 이 Bool 자체는 outer body 어디서든 접근
     // 가능한 평범한 @State로 둔다.
     @State private var showCreateArticle = false
+
+    // Task 9 — 툴바 채팅 아이콘이 여는 그룹 채팅방(숨김 NavigationLink) 표시 여부.
+    @State private var showChat = false
 
     // imageHeight(200) - toolbarHeight(56) - tabHeight(48). CollapsingListScaffold 내부 계산과
     // 반드시 같은 값이어야 한다.
@@ -147,7 +164,10 @@ struct GroupView: View {
                         headerHeight: headerHeight,
                         appBarState: appBarState,
                         isActive: viewModel.selectedTab == 3,
-                        scrollOffset: $viewModel.tab4ScrollOffset
+                        scrollOffset: $viewModel.tab4ScrollOffset,
+                        onGroupUpdated: { name, description, joinType, imageURL in
+                            viewModel.applyGroupUpdate(name: name, description: description, joinType: joinType, imageURL: imageURL)
+                        }
                     )
                     .opacity(viewModel.selectedTab == 3 ? 1 : 0)
                     .allowsHitTesting(viewModel.selectedTab == 3)
@@ -169,6 +189,23 @@ struct GroupView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackgroundColorCompat(isCollapsed ? UIColor(Color.accentColor) : .clear)
         .navigationBarTintColorCompat(isCollapsed ? .white : UIColor(Color.accentColor))
+        // Task 9 — 툴바 채팅 아이콘. 틴트는 위 navigationBarTintColorCompat를 그대로 따르므로
+        // 접힘/펼침 색 전환이 자동 적용된다.
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showChat = true }) {
+                    Image(systemName: "bubble.left.and.bubble.right.fill")   // Android action_chat("채팅방") 대응
+                }
+            }
+        }
+        .background(
+            NavigationLink(isActive: $showChat) {
+                ChatView(receiver: viewModel.groupItem.key,   // 그룹 Firebase key — nil이면 ChatView가 안내 표시
+                         isGroupChat: true,
+                         chatName: viewModel.groupItem.name)
+            } label: { EmptyView() }
+            .hidden()
+        )
     }
 
     // 탭 전환 시 목적 탭이 이미 최상단이 아니면(Android가 접힌 채로 페이지만 바뀌는 것과 동일한
@@ -196,7 +233,7 @@ struct GroupView: View {
     private var headerBackground: some View {
         if viewModel.hasCoverPhoto {
             ZStack(alignment: .bottom) {
-                RemoteImage(urlString: EndPoint.groupImage(file: viewModel.groupItem.image))
+                RemoteImage(urlString: viewModel.groupItem.image)
                     .aspectRatio(contentMode: .fill)
                     .clipped()
 
